@@ -14,29 +14,39 @@ knitr::opts_chunk$set(
 )
 ```
 
+Please load the `CorMID` package before running the examples within this document.
+
 ```{r setup}
 library(CorMID)
 ```
 
-# Purpose of the package
+# The CorMID function to correct superimposed mass isotopologue distributions of ^13^C labelled molecules in GC-APCI-MS flux experiments
 
-The package provides as the main functionality function `CorMID` which will estimate for a numeric vector of measured ion intensities originating from a compound analyzed by GC-APCI-MS (see below)
+The package provides the main function `CorMID` which will estimate the fragment distribution, *r*, and the mass isotopologue distribution, *M*, for a numeric vector of measured ion intensities originating from a compound analyzed by GC-APCI-MS (see below).
 
 ## Definitions
 
 ### Gas chromatography (GC)
 
+Gas chromatography is an analytical method to separate volatile compounds.
+
 ### Atmospheric pressure chemical ionization (APCI)
+
+Atmospheric pressure chemical ionization (APCI) is an ionization method used in mass spectrometry which utilizes gas-phase ion-molecule reactions at atmospheric pressure (10^5^ Pa) to convert molecules separated by GC into ions which can be analyzed by mass spectrometry.
 
 ### Mass spectrometry (MS)
 
-### Mass Isotopomer Distributions (MID)
+Mass spectrometry is an analytical method to separate ions due to their mass, more specifically due to their difference in mass to charge ratio.
 
-.
+### Mass Isotopologue Distributions (MID)
+
+Compounds which have the same sum formula are termed isomers. Isomers can be structural, *i.e.* the arrangement of the atoms in the molecules are different. All isomers of a specific sum formula which are structurally identical and differ only in their isotopic composition are termed isotopomers. Here, again, several isotopomers may share the same sum formula in which case they are termed isotopologues.
+
+Example: C~2~H~6~O would be a sum formula, with ethanol CH~3~-CH~2~-OH being one structural isomer of C~2~H~6~O. The molecules ^13^CH~3~-CH~2~-OH and CH~3~-^13^CH~2~-OH would be two isotopomers of ethanol. Together, these two isotopomers represent one of three possible carbon isotopologues of ethanol, the M1 isotopologue with sum formula ^13^C^12^CH~6~O. The corresponding M2 isotopologue being ^13^C~2~H~6~O. In mass spectrometry we would measure the mass isotopologue distribution of C~2~H~6~O, more specifically of the structural isomer ethanol, by quantifying 3 different ion masses for M0, M1 and M2. This vector is termed MID.
 
 ### Helper functions
 
-In addition to the main function currently termed `CorMID` I make use of two other functions: `CountChemicalElements` and `CalcTheoreticalMDV`. The first one simply counts the digit following a certain letter in a chemical sum formula. Here, we use it to determine the number of carbon, silicon and sulfor atoms (neglecting nitrogen, as the 15N isotope is of low abundance). As the anticipated user will probably work on TMS derivatized compounds I included two additional letters to the chemical alphabet, **T** for TMS and **M** for a MEOX substitution. In consequence for compound Glucose (5TMS 1MEOX) we would count:
+Within the main function `CorMID` we make use of several helper functions, *i.e.* `CountChemicalElements` and `CalcTheoreticalMDV`. The first one simply counts the digit following a certain letter in a chemical sum formula. Here, we use it to determine the number of carbon, silicon and sulfur atoms (neglecting nitrogen, as the ^15^N isotope is of low abundance). As the anticipated user will probably work on derivatized compounds, two additional letters were included to the chemical alphabet, **T** for TMS and **M** for a MEOX substitution. In consequence for compound Glucose (5TMS 1MEOX) we would count:
 
 ```{r CountChemicalElements}
 fml <- "C6H12O6T5M1"
@@ -46,7 +56,7 @@ CountChemicalElements(x = fml, ele=c("C","Si","T","Cl"))
 
 and receive as output a named vector for all present elements or only a selection of elements as specified by parameter *ele*.
 
-The elements with a significant amount of natural occuring isotopes are relevant to calculate the theoretical mass distribution vector (or rather matrix respectively) of the compound. In the above example this is effectively Carbon and Silicon. As we have a 5TMs Glucose molecule we need to consider in total 21 C and 5 Si in our calculations:
+The elements with a significant amount of natural occurring isotopes are relevant to calculate the theoretical mass distribution vector (or rather matrix respectively) of the compound. In the above example this is effectively carbon and silicon. As we have 5 TMS groups, we need to consider in total 21 C and 5 Si in our calculations:
 
 ```{r CalcTheoreticalMDV1}
 fml <- "C21Si5"
@@ -54,21 +64,31 @@ td <- CalcTheoreticalMDV(fml=fml)
 round(td,4)
 ```
 
-The first row of the matrix (M0) gives the relative amounts of all potential isotopes for C~21~Si~5~ assuming natural abundance conditions. The second row (M1) shows the relative amounts in case of at least one ^13^C contained. The final row (M6) shows the relative amounts when all biological carbon atoms are assumed to be ^13^C. The amount of biological carbon is estimated based on the amount of Si within the function. This might be overwritten specifying attributes defining the number of C of biological origin *nbio* and by specifying the number of measured ion signals above the detection limit *nmz*:
+The first row of the matrix (M0) gives the relative amounts of all potential isotopes for C~21~Si~5~ assuming natural abundance conditions. The second row (M1) shows the relative amounts for isotopologue M1 (containing at least one ^13^C). The final row (M6) shows the relative amounts when all biological carbon atoms are assumed to be ^13^C. The amount of biological carbon is estimated based on the amount of Si within the function. This might be overwritten by function parameters specifying the number of C of biological origin *nbio* and the number of measured ion signals above the detection limit *nmz*:
 
 ```{r CalcTheoreticalMDV2}
-attr(fml, "nmz") <- 21
-attr(fml, "nbio") <- 21
-round(CalcTheoreticalMDV(fml=fml)[-(5:19),-(5:19)],4)
+round(CalcTheoreticalMDV(fml=fml, nbio=21, nmz=21)[-(5:19),-(5:19)],4)
 ```
 
-## Main function
+Further, the package contains the convenience function `recMID` to reconstruct a measured MID based on a given *corMID,* *r* and sum formula. `recMID` returns an object of the similarly named class to allow easy visualization.
+
+```{r recMID}
+fml <- "C9H20O3Si2"
+mid <- c(0.9,0,0,0.1)
+r <- list("M+H"=0.8, "M-H"=0.1, "M+H2O-CH4"=0.1)
+(rMID <- CorMID::recMID(mid=mid, r=r, fml=fml))
+plot(rMID)
+```
+
+The spectrum shown in the above plot would be measured for lactic acid (2 TMS), assuming 10% of the fully labeled isotopologue M3, natural abundance, 10% proton loss and 10% of [M+H]+H~2~O-CH~4~. It is the task of `CorMID` to disentangle this overlay of superimposed MIDs and estimate both, *corMID* and *r*.
+
+## Main function `CorMID`
 
 ### Idea
 
 The problem in GC-APCI-MS that we try to overcome is the formation of fragments forming superimposed MIDs. The ones we identified so far are [M+H], [M+], [M+H]-H~2~ and [M+H]+H~2~O-CH~4~. If we assume [M+H] to be generally the most abundant and hence use it as our fix point (base MID, shift = 0), than we observe superimposed MIDs starting at -2, -1 and +2 relative to [M+H] for [M+], [M+H]-H~2~ and [M+H]+H~2~O-CH~4~ respectively.
 
-The basic idea of the correction is that we measure a superimposed/composite MID of one to several fragments all derived from the same base MID. This base MID is exactly what we are looking for. Correcting for it is complicated because we dont know the distribution of fragments, i.e. the amount of the individual occuring fragments or their ratios to each other respectively. Hence, we have to estimate a base MID and a ratio vector **r** giving the distribution of present fragments, which together represent our measurement data optimally.
+The basic idea of the correction is that we measure a superimposed/composite MID of one to several fragments all derived from the same base MID. This base MID (or correct MID, *corMID*) is exactly what we are looking for. Estimating the *corMID* is complicated because we do not know the distribution of fragments, *i.e.* the amount of the individually occurring fragments or their ratios to each other respectively. Hence, we have to estimate *corMID* and the ratio vector *r* giving the distribution of present fragments, which together represent our measurement data optimally.
 
 ### Example
 
@@ -76,27 +96,27 @@ Lets start with an artificial Glucose spectrum where 10% is M6 labeled:
 
 ```{r CorMID1}
 fml <- "C21Si5"
-td1 <- CalcTheoreticalMDV(fml = fml)
+td1 <- CalcTheoreticalMDV(fml = fml, nbio=6, nmz=8)
 bMID <- c(0.9,rep(0,5),0.1)
 md1 <- apply(td1*bMID,2,sum)
 round(md1,4)
 ```
 
-to obtain the measure distribution **md1** which is our measured intensity values expressed relative. See that the M+6 value corresponds to 10% as specified. Now we may use `CorMID` to decompose this back:
+**md1** represents the measured isotopologue distribution which is our measured intensity values normalized to the vector sum. Please note that the measured MID contains additional peaks at M+7 and M+8, being the natural abundant isotopes of carbon atoms attached during derivatization. Now we may use function `CorMID` to decompose this back:
 
 ```{r CorMID2}
-CorMID(int=md1, fml=fml, r="M+H")
+CorMID(int=md1, fml=fml, r=unlist(list("M+H"=1)))
 ```
 
-Notice, that we allowed only [M+H] to be present in option *r*. The result is a labeled vector representing the corrected or baseMID together with information on the fitting error *err* and regarding the options used during the function call as attributes *ratio*, *ratio_status* and *mid_status* with *mid* being estimated and *ratio* being fixed during the function call.
+Notice, that we allowed only [M+H] to be present in option *r*. The result is a labeled vector representing the corrected or base MID together with information on the fitting error *err* and regarding the options used during the function call as attributes *ratio*, *ratio_status* and *mid_status* with *mid* being estimated and *ratio* being fixed during the function call.
 
-We could achieve something similar testing for other potential fragments/rearrangement in the *r* option:
+We could achieve something similar testing for all currently defined fragments by omitting the *r* option:
 
 ```{r CorMID3}
 CorMID(int=md1, fml=fml)
 ```
 
-We essentially get the same result as before (except for *ratio* related attributes) because there is no superimposition in our test data. Now lets generate more difficult composite data to be fit by including a 20% proton loss...
+Here, we essentially get the same result as before (except for *ratio* related attributes) because there is no superimposition in our test data. Now lets generate more difficult composite data to be fit by including a 20% proton loss...
 
 ```{r CorMID4}
 md2 <- unlist(list("M-1"=0,0.8*md1)) + c(0.2*md1,0)
@@ -109,34 +129,30 @@ and let `CorMID` decompose this back...
 CorMID(int=md2, fml=fml)
 ```
 
-which is pretty close to the truth, albeit not perfect. :)
+which is pretty close to the truth. :)
 
-### Function Details
+### More Function Details
 
-Lets look into the details of the function. Appart from some sanity checks and data preparation steps done by the wrapper function `CorMID` the main idea is to model a theoretical distribution based on a provided sum formula and fit a base MID and fragment ratios according to measurement data by function `FitMID` which is discussed in the following. The approach is brute force using two nested estimators for ratio and MID seperately. It builds on the idea to test a crude grid of parameters first, identify the best solution and iteratively approaching the true value by minimizing the grid.
+Let's look into the details of the function. Apart from some sanity checks and data preparation steps done by the wrapper function `CorMID` the main idea is to model a theoretical distribution based on a provided sum formula and fit a base MID and fragment ratios according to measurement data by function `FitMID` which is discussed in the following. The approach is brute force using two nested estimators for *r* and *corMID* separately. It builds on the idea to test a crude grid of parameters first, identify the best solution and use an iterative method minimizing the grid to approach the true value.
 
-The grid is set by an internal function `poss_local`. Basically, if we have a two carbon molecule we expect an baseMID of length=3 (M0, M1 and M2). Let's assume that the true baseMID is {0.9, 0, 0.1}. Using a wide grid we would than test the following possibilities:
+The grid is set by an internal function `poss_local`. Basically, if we have a two carbon molecule we expect a *corMID* of length=3 {M0, M1, M2}. Let's assume that *corMID* = {0.9, 0, 0.1}. Using a wide grid we would than test the following possibilities:
 
 ```{r poss_local_demo1}
-CorMID:::poss_local(vec=c(0.5,0.5,0.5), d=0.5)
+CorMID:::poss_local(vec=c(0.5,0.5,0.5), d=0.5, length.out=3)
 ```
 
 and identify {1, 0, 0} as best match after subjecting to a testing function. We decrease the step size of the grid by 50% and test in the next iteration:
 
 ```{r poss_local_demo2}
-CorMID:::poss_local(vec=c(1,0,0), d=0.25)
+CorMID:::poss_local(vec=c(1,0,0), d=0.25, length.out=3)
 ```
 
-and still identify {1, 0, 0} as best match. However, in the next iteration:
+and will get closer to the truth and find {0.875, 0, 0.125} to give the lowest error.
 
-```{r poss_local_demo3}
-CorMID:::poss_local(vec=c(1,0,0), d=0.125)
-```
+In summary, using this approach we can approximate the optimal vectors of *corMID* and *r* in a finite number of iterations to reach a desired precision \<0.1%. We can nest MID fitting inside ratio fitting and thereby do both in parallel.
 
-we will get closer to the truth and find {0.875, 0, 0.125} to give the lowest error.
+The error function currently employed is simply the square root of the summed squared errors, comparing the provided measurement data and a reconstructed MID based on a specific *corMID* and *r*.
 
-In summary, using this approach we can approximate a vector which should be of certain length and sum up to one in 13 steps to reach a precision \<0.1%. We can nest MID fitting inside ratio fitting and thereby do both in parallel. However, I did not test this for robustness extensively yet (only 3 metabolites over 30 samples each).
+## Wrap up
 
-The error function currently employed is simply the square root of the summed squared errors in comparing the provided measurement data and the expected value based on a baseMID and a specific ratio of fragments.
-
-I hope this was all understandable, the code readable. I am more than happy for improvements, error checking, suggestions and critics. :)
+Thanks for following till the end. I hope this framework is helpful for you.

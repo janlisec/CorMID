@@ -4,10 +4,14 @@
 \alias{CalcTheoreticalMDV}
 \title{CalcTheoreticalMDV.}
 \usage{
-CalcTheoreticalMDV(fml = NULL)
+CalcTheoreticalMDV(fml = NULL, nbio = NULL, nmz = NULL)
 }
 \arguments{
 \item{fml}{The chemical formula of the compound.}
+
+\item{nbio}{Provide the number of biological carbon within fml explicitly.}
+
+\item{nmz}{Provide the number of measured isotopes of fml explicitly.}
 }
 \value{
 A matrix of theoretical mass distribution vectors.
@@ -23,7 +27,7 @@ A matrix of theoretical mass distribution vectors.
  It will break this down into a matrix where the components of the MID constitute
  the rows and the expected relative ion intensities are within the columns.
  The number of exported ion intensities and MID components can be limited
- if numeric values for "nmz" and/or "nbio" provided as attributes with the formula.
+ if numeric values for "nmz" and/or "nbio" are provided as parameters.
 }
 \examples{
 # standard distribution matrix
@@ -31,10 +35,8 @@ fml <- "C5H6Si1"
 CalcTheoreticalMDV(fml=fml)
 
 # extend to more columns (number of measured ions) if required
-attr(fml,"nmz") <- 4
-CalcTheoreticalMDV(fml=fml)
+CalcTheoreticalMDV(fml=fml, nmz=4)
 
 # limit to a smaller number of biological carbon (i.e. if compounds are silylated)
-attr(fml,"nbio") <- 2
-CalcTheoreticalMDV(fml=fml)
+CalcTheoreticalMDV(fml=fml, nmz=4, nbio=2)
 }

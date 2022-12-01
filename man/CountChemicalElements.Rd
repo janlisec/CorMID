@@ -16,14 +16,14 @@ A named numeric with counts for all contained or specified elements.
 }
 \description{
 \code{CountChemicalElements} will split a character (chemical formula)
- into its elements and count their occurence.
+ into its elements and count their occurrence.
 }
 \details{
 No testing for any chemical alphabet is performed. Elements may occur
  several times and will be summed up in this case without a warning.
  Information within brackets, i.e. [13]C will be removed prior to counting
  together with other symbols not contained in the R set 'alnum'.
- The result is filtered and oredered according to parameter 'ele' if provided.
+ The result is filtered and ordered according to parameter 'ele' if provided.
 }
 \examples{
 # count every element

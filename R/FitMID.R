@@ -1,27 +1,18 @@
-#'@title FitMID.
-#'@description \code{FitMID} will ...
-#'@param md Measured distribution. Normalized (i.e. sum=1) raw intensity vector.
-#'@param td Theoretical intensity distribution (using function 'CalcTheoreticalMDV').
-#'@param r matrix of considere fragments and their potential occurence.
-#'@param mid_fix May provide a numeric vector used as a given MID. Allows to estimate \code{r} individually.
-#'@param prec Precision of the estimation of MID, set to 1\% as default.
-#'@param trace_steps For testing purposes. Print the results of intermediate steps to console.
-#'@param penalize Numeric exponent penalizing solutions with low M+H occurence. Formula is 1+3*(1-x)^penalty. NA to omit penalizing.
-#'@importFrom stats median
-#'@importFrom utils head
-#'@importFrom plyr ldply alply
-#'@return Fitted MID with attributes.
-#'@examples
-#'\dontrun{
-#'int <- c(1560, 119203, 41927, 16932, 4438)
-#'names(int) <- c(-2, 0, 1, 2, 3)
-#'fml <- "C19H37NO4Si3"
-#'td <- CalcTheoreticalMDV(fml=fml)
-#'known_frags <- unlist(list("M+H"=0,"M+"=-1,"M-H"=-2,"M+H2O-CH4"=+2))
-#'r <- matrix(rep(c(0,1), 4), nrow=2, dimnames=list(NULL, names(known_frags)))
-#'FitMID(md=int, td=td, trace=TRUE, frag=c(-2, 0, 1, 2, 3), r=r)
-#'}
-#'@keywords internal
+#' @title FitMID.
+#' @description \code{FitMID} will ...
+#' @param md Measured distribution. Normalized (i.e. sum=1) raw intensity vector.
+#' @param td Theoretical intensity distribution (using function 'CalcTheoreticalMDV').
+#' @param r matrix of considere fragments and their potential occurence.
+#' @param mid_fix May provide a numeric vector used as a given MID. Allows to estimate \code{r} individually.
+#' @param prec Precision of the estimation of MID, set to 1\% as default.
+#' @param trace_steps For testing purposes. Print the results of intermediate steps to console.
+#' @param penalize Numeric exponent penalizing solutions with low M+H occurence. Formula is 1+3*(1-x)^penalty. NA to omit penalizing.
+#' @importFrom stats median
+#' @importFrom utils head
+#' @importFrom plyr ldply alply
+#' @return Fitted MID with attributes.
+#' @keywords internal
+#' @noRd
 FitMID <- function(md=NULL, td=NULL, r=NULL, mid_fix=NULL, prec=0.01, trace_steps=FALSE, penalize=NA) {
 
   # potential parameters
@@ -62,11 +53,7 @@ FitMID <- function(md=NULL, td=NULL, r=NULL, mid_fix=NULL, prec=0.01, trace_step
       cat(paste("\nUsing stepwidth for MID:", round(dst,5)))
     }
     test_mid <- plyr::alply(.data=as.data.frame(mid_local), 1, function (x) {
-      reconstructed_mid <- apply(td*unlist(x),2,sum)
-      #if ()
-      #browser()
-      #ReconstructMID(mid=unlist(x), r=unlist(list("M+H"=1)), fml=fml)
-      ## !!! is this reconstruction above correct ??? Dont we need to multiply by rows
+      pre_mid <- apply(td*unlist(x),2,sum)
       if (r_fixed) {
         r_steps <- 0.5
       } else {
@@ -82,10 +69,9 @@ FitMID <- function(md=NULL, td=NULL, r=NULL, mid_fix=NULL, prec=0.01, trace_step
           d <- rst
           # test fragment ratio distributions
           test_r <- apply(r_local, 1, function (y) {
-            calc_mid_error(md=md, reconstructed_mid=reconstructed_mid, best_r=y)
+            calc_mid_error(md=md, reconstructed_mid=pre_mid, best_r=y)
           })
           w_r_errs <- weight_errors(rMpH = r_local[,"M+H"], errs = test_r, penalize = penalize)
-          #r_start <- r_local[which.min(w_r_errs),]
           r_start <- r_local[which.min(w_r_errs),,drop=F]
           if (nrow(r_start)==0) { warning("nrow(r_start) was empty") }
           r_start <- r_start[1,]
@@ -93,14 +79,9 @@ FitMID <- function(md=NULL, td=NULL, r=NULL, mid_fix=NULL, prec=0.01, trace_step
         }
       }
       best_r <- r_start
-      mid_err <- calc_mid_error(md=md, reconstructed_mid=reconstructed_mid, best_r=best_r)
+      mid_err <- calc_mid_error(md=md, reconstructed_mid=pre_mid, best_r=best_r)
       return(list("err"=mid_err, "r"=round(best_r,4)))
     })
-    #browser()
-    #reconstructed_mid <- apply(td*unlist(attr(test_mid,"split_labels")["3",]),2,sum)
-    #reconstructed_mid <- apply(td*unlist(attr(test_mid,"split_labels")["83",]),2,sum)
-    #best_r <- test_mid[["1"]]$r
-    #calc_mid_error(md=md, reconstructed_mid=reconstructed_mid, best_r=best_r)
     w_m_errs <- weight_errors(rMpH = sapply(test_mid,function(x){x$r["M+H"]}), errs = sapply(test_mid,function(x){x$err}), penalize = penalize)
     best <- which.min(w_m_errs)
     if (trace_steps) {
