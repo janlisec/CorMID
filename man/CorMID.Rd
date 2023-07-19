@@ -2,6 +2,8 @@
 % Please edit documentation in R/CorMID.R
 \name{CorMID}
 \alias{CorMID}
+\alias{plot.CorMID}
+\alias{print.CorMID}
 \title{CorMID.}
 \usage{
 CorMID(
@@ -13,6 +15,10 @@ CorMID(
   trace_steps = FALSE,
   prec = 0.01
 )
+
+\method{plot}{CorMID}(x, ...)
+
+\method{print}{CorMID}(x, ...)
 }
 \arguments{
 \item{int}{Named numeric vector of measured ion intensities of a fragment. Names will give position of values relative to M+H (see details).}
@@ -31,6 +37,10 @@ OR a 2-row matrix giving the lower and upper allowed ratio (see examples).}
 \item{trace_steps}{For testing purposes. Print the results of intermediate steps to console.}
 
 \item{prec}{Precision of the estimation of MID, set to 1\% as default.}
+
+\item{x}{Object of class CorMID.}
+
+\item{...}{Further plotting parameters.}
 }
 \value{
 Estimated percent representation of each isotopologue measured (corMID).
@@ -65,7 +75,8 @@ int <- CorMID::recMID(mid=mid, r=r, fml=fml)
 plot(int)
 
 # full estimation of M and r
-CorMID::CorMID(int=int, fml=fml)
+out <- CorMID::CorMID(int=int, fml=fml)
+plot(out)
 
 # get an improved result setting r to the correct values
 CorMID::CorMID(int=int, fml=fml, r=r, prec=0.0001)

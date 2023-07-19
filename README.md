@@ -43,16 +43,17 @@ follows:
 ``` r
 library(CorMID)
 fml <- "C9H20O3Si2"
-mid <- c(0.9,0,0,0.1)
-r <- list("M+H"=0.8, "M-H"=0.1, "M+H2O-CH4"=0.1)
-(rMID <- CorMID::recMID(mid=mid, r=r, fml=fml))
+mid <- c(0.9, 0, 0, 0.1)
+r <- list("M+H" = 0.8, "M-H" = 0.1, "M+H2O-CH4" = 0.1)
+(rMID <- CorMID::recMID(mid = mid, r = r, fml = fml))
 plot(rMID)
 ```
 Assuming that you have measured these intensities in your experiment, **CorMID**
 could estimate the underlying *MID* and *r* for you:
 
 ``` r
-CorMID::CorMID(int = rMID, fml=fml, prec=0.001, r=unlist(r))
+out <- CorMID::CorMID(int = rMID, fml=fml, prec=0.001, r=unlist(r))
+print(out)
 ```
 
 ## Detailed documentation

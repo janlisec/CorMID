@@ -37,7 +37,8 @@
 #'plot(int)
 #'
 #'# full estimation of M and r
-#'CorMID::CorMID(int=int, fml=fml)
+#'out <- CorMID::CorMID(int=int, fml=fml)
+#'plot(out)
 #'
 #'# get an improved result setting r to the correct values
 #'CorMID::CorMID(int=int, fml=fml, r=r, prec=0.0001)
@@ -135,6 +136,60 @@ CorMID <- function(int=NULL, fml="", r=NULL, penalize=7, mid_fix=NULL, trace_ste
   # fitted return value
   out <- FitMID(md=rawMID, td=td, r=r, mid_fix=mid_fix, prec=prec, trace_steps=trace_steps, penalize=penalize)
 
+  # set the class to allow dedicated plotting and printing
+  class(out) <- "CorMID"
+
   # return relative representation of each isotopologue measured (= corrected MIDs in %)
   return(out)
+}
+
+#'@rdname CorMID
+#'@param x Object of class CorMID.
+#'@param ... Further plotting parameters.
+#'@importFrom graphics axis par
+#'@importFrom grDevices grey
+#'@export
+#'@method plot CorMID
+plot.CorMID <- function(x, ...) {
+  stopifnot(is.numeric(x))
+  stopifnot(all(names(x) %in% paste0("M", 0:12)))
+  argg <- c(as.list(environment()), list(...))
+  if (!"xlab" %in% names(argg)) xlab <- "" else xlab <- argg$xlab
+  if (!"ylab" %in% names(argg)) ylab <- "Relative intensity [%]" else ylab <- argg$ylab
+  if (!"lwd" %in% names(argg)) lwd <- 7 else lwd <- argg$lwd
+  if (!"lend" %in% names(argg)) lend <- 1 else lend <- argg$lend
+  if (!"xlim" %in% names(argg)) xlim <- c(0.5,length(x)+0.5) else xlim <- argg$xlim
+  if (!"ylim" %in% names(argg)) ylim <- c(0,100) else ylim <- argg$ylim
+  if (!"las" %in% names(argg)) las <- 2 else las <- argg$las
+  default_cols <- c(1:7, rep(grDevices::grey(0.9), 6))
+  names(default_cols) <- paste0("M", 0:12)
+  col <- default_cols[names(x)]
+  if ("col" %in% names(argg)) { col <- argg$col }
+  opar <- graphics::par(no.readonly = TRUE)
+  on.exit(graphics::par("mar"=opar$mar))
+  par(mar=c(ifelse(xlab=="", 3, 5), 4, 0, 0) + 0.3)
+  plot(as.numeric(x), type="h", axes=FALSE, lwd=lwd, lend=lend, col=col, xlab=xlab, ylab=ylab, xlim=xlim, ylim=ylim)
+  graphics::axis(1, at=1:length(x), labels=names(x), las=las)
+  graphics::axis(2, las=las)
+}
+
+#'@rdname CorMID
+#'@param x Object of class CorMID.
+#'@export
+#'@method print CorMID
+print.CorMID <- function(x, ...) {
+  stopifnot(is.numeric(x))
+  cat_or_message <- function(txt) {
+    if (interactive()) { cat(paste0("\033[0;34m", txt, "\033[0m", "\n")) } else { message(txt) }
+  }
+  cat_or_message(paste0("MID [%] (", attr(x, "mid_status"), ")"))
+  cat("    ", paste(names(x), collapse="    "), "\n", sep="")
+  cat(" ", paste(formatC(x, digits=2, format="f", width=5, flag="0"), collapse=" "), "\n", sep="")
+  cat_or_message(paste0("[attr] 'r' (", attr(x, "ratio_status"), ")"))
+  r <- attr(x, "ratio")
+  cat("  ", paste(names(r), collapse="   "), "\n", sep="")
+  cat(sapply(1:length(r), function(i) { formatC(r[i], digits=2, format="f", width=2+nchar(names(r)[i])) }), "\n")
+  cat_or_message("[attr] 'err'")
+  cat(formatC(attr(x, "err"), format="g"))
+  cat_or_message("[class] 'CorMID'")
 }
