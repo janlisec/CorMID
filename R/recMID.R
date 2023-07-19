@@ -54,7 +54,6 @@ recMID <- function(mid=NULL, r=list("M+H"=1), fml=NULL, cutoff=0.001) {
 #'@method plot recMID
 plot.recMID <- function(x, ...) {
   stopifnot(is.numeric(x))
-  #stopifnot(is.vector(x))
   if (is.null(names(x))) {
     names(x) <- paste("M", 0:(length(x)-1), sep="+")
   } else {
@@ -75,7 +74,7 @@ plot.recMID <- function(x, ...) {
   if (!"xlim" %in% names(argg)) xlim <- c(0.5,length(x)+0.5) else xlim <- argg$xlim
   if (!"ylim" %in% names(argg)) ylim <- c(0,1) else ylim <- argg$ylim
   if (!"las" %in% names(argg)) las <- 2 else las <- argg$las
-  default_cols <- c(grDevices::grey(0.3),grDevices::grey(0.6),1:7,rep(grDevices::grey(0.9),7))
+  default_cols <- c(grDevices::grey(0.3), grDevices::grey(0.6), 1:7, rep(grDevices::grey(0.9),7))
   names(default_cols) <- c("M-2", "M-1", paste("M", 0:12, sep="+"))
   col <- default_cols[names(x)]
   if ("col" %in% names(argg)) { col <- argg$col }

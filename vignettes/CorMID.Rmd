@@ -120,7 +120,7 @@ round(md1, 4)
 CorMID(int=md1, fml=fml, r=unlist(list("M+H"=1)))
 ```
 
-Notice, that we allowed only [M+H] to be present in option *r*. The result is a labeled vector representing the corrected MID (or base MID) and attributes providing information on the fitting error *err* and the parameters *ratio*, *ratio_status* and *mid_status* as used in the function call. Please note that during the function call *mid* was estimated and *ratio* was fixed.
+Notice, that we allowed only [M+H] to be present in option *r*. The result is a labeled vector representing the corrected MID (or base MID) and attributes providing information on the fitting error *err* and the parameters *r*atio, *ratio_status* and *mid_status* as used in the function call. Please note that during the function call *mid* was estimated and *r*atio was fixed.
 
 We could achieve something similar testing for all currently defined fragments by omitting the *r* option:
 
@@ -128,7 +128,7 @@ We could achieve something similar testing for all currently defined fragments b
 CorMID(int=md1, fml=fml)
 ```
 
-Here, we essentially get the same result as before (except for *ratio* related attributes) because there is no superimposition in our test data. Now lets generate more difficult composite data **md2** to be fit by including a 20% proton loss (or "[M+]" or "M-1", respectively) on top of **md1**.
+Here, we essentially get the same result as before (except for *ratio* related attributes) because there is no superimposition in our test data. *ratio* was estimated and other possible adducts were tested but found to be of zero presence.  Now lets generate more difficult composite data **md2** to be fit by including a 20% proton loss (or "[M+]" or "M-1", respectively) on top of **md1**.
 
 ```{r CorMID4}
 md2 <- unlist(list("M-1" = 0, 0.8*md1)) + c(0.2*md1, 0)
@@ -143,7 +143,7 @@ bMID <- c(0.9, rep(0, 5), 0.1)
 r <- list("M+H" = 0.8, "M+" = 0.2)
 rMID <- CorMID::recMID(mid = bMID, r = r, fml = fml)
 round(rMID, 4)
-plot(rMID)
+plot(rMID, ylim=c(0,0.45))
 ```
 
 and let `CorMID` decompose this back...
