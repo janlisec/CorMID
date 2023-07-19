@@ -1,29 +1,29 @@
-#'@title CalcTheoreticalMDV.
-#'@description \code{CalcTheoreticalMDV} will compute the Mass Distribution Vectors
+#' @title CalcTheoreticalMDV.
+#' @description \code{CalcTheoreticalMDV} will compute the Mass Distribution Vectors
 #'  of isotopologues as it is used for correction matrix in \link{CorMID} computations.
-#'@details \code{CalcTheoreticalMDV} basically is a convenience function using Rdisop
-#'  to generate the isotopologue distribution at natural abundance of 13C for a given
-#'  formula.
+#' @details \code{CalcTheoreticalMDV} basically is a convenience function using Rdisop
+#'  to generate the isotopologue distribution at natural abundance of \eqn{^{13}C}{13C}
+#'  for a given formula.
 #'  It will break this down into a matrix where the components of the MID constitute
 #'  the rows and the expected relative ion intensities are within the columns.
 #'  The number of exported ion intensities and MID components can be limited
-#'  if numeric values for "nmz" and/or "nbio" are provided as parameters.
-#'@param fml The chemical formula of the compound.
-#'@param nbio Provide the number of biological carbon within fml explicitly.
-#'@param nmz Provide the number of measured isotopes of fml explicitly.
-#'@return A matrix of theoretical mass distribution vectors.
-#'@importFrom Rdisop getMolecule
-#'@examples
-#'# standard distribution matrix
-#'fml <- "C5H6Si1"
-#'CalcTheoreticalMDV(fml=fml)
+#'  if numeric values for \code{nmz} and/or \code{nbio} are provided as parameters.
+#' @param fml The chemical formula of the compound.
+#' @param nbio Provide the number of biological carbon within \code{fml} explicitly.
+#' @param nmz Provide the number of measured isotopes of \code{fml} explicitly.
+#' @return A matrix of theoretical mass distribution vectors.
+#' @importFrom Rdisop getMolecule
+#' @examples
+#' # standard distribution matrix
+#' fml <- "C5H6Si1"
+#' CalcTheoreticalMDV(fml = fml)
 #'
-#'# extend to more columns (number of measured ions) if required
-#'CalcTheoreticalMDV(fml=fml, nmz=4)
+#' # extend to more columns (number of measured ions) if required
+#' CalcTheoreticalMDV(fml = fml, nmz = 4)
 #'
-#'# limit to a smaller number of biological carbon (i.e. if compounds are silylated)
-#'CalcTheoreticalMDV(fml=fml, nmz=4, nbio=2)
-#'@export
+#' # limit to a smaller number of biological carbon (i.e. if compounds are silylated)
+#' CalcTheoreticalMDV(fml = fml, nmz = 4, nbio = 2)
+#' @export
 #CalcTheoreticalMDV <- function(fml=NULL, nbio=NULL, nmz=NULL, algo=c("Rdisop", "IsoSpec")[2]) {
 CalcTheoreticalMDV <- function(fml=NULL, nbio=NULL, nmz=NULL) {
   # establish number of ions measured (estimate from formula if not provided)

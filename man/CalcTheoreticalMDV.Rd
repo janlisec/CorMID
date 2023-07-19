@@ -9,9 +9,9 @@ CalcTheoreticalMDV(fml = NULL, nbio = NULL, nmz = NULL)
 \arguments{
 \item{fml}{The chemical formula of the compound.}
 
-\item{nbio}{Provide the number of biological carbon within fml explicitly.}
+\item{nbio}{Provide the number of biological carbon within \code{fml} explicitly.}
 
-\item{nmz}{Provide the number of measured isotopes of fml explicitly.}
+\item{nmz}{Provide the number of measured isotopes of \code{fml} explicitly.}
 }
 \value{
 A matrix of theoretical mass distribution vectors.
@@ -22,21 +22,21 @@ A matrix of theoretical mass distribution vectors.
 }
 \details{
 \code{CalcTheoreticalMDV} basically is a convenience function using Rdisop
- to generate the isotopologue distribution at natural abundance of 13C for a given
- formula.
+ to generate the isotopologue distribution at natural abundance of \eqn{^{13}C}{13C}
+ for a given formula.
  It will break this down into a matrix where the components of the MID constitute
  the rows and the expected relative ion intensities are within the columns.
  The number of exported ion intensities and MID components can be limited
- if numeric values for "nmz" and/or "nbio" are provided as parameters.
+ if numeric values for \code{nmz} and/or \code{nbio} are provided as parameters.
 }
 \examples{
 # standard distribution matrix
 fml <- "C5H6Si1"
-CalcTheoreticalMDV(fml=fml)
+CalcTheoreticalMDV(fml = fml)
 
 # extend to more columns (number of measured ions) if required
-CalcTheoreticalMDV(fml=fml, nmz=4)
+CalcTheoreticalMDV(fml = fml, nmz = 4)
 
 # limit to a smaller number of biological carbon (i.e. if compounds are silylated)
-CalcTheoreticalMDV(fml=fml, nmz=4, nbio=2)
+CalcTheoreticalMDV(fml = fml, nmz = 4, nbio = 2)
 }
