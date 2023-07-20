@@ -22,7 +22,6 @@ Imports:
     plyr,
     Rdisop
 Suggests: 
-    IsoCor,
     knitr,
     rmarkdown,
     testthat,

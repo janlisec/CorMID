@@ -61,14 +61,14 @@ CountChemicalElements(x = fml, ele = c("C", "Si", "T", "Cl"))
 
 The elements with a significant amount of natural occurring isotopes are relevant to calculate the theoretical mass distribution vector (or rather matrix respectively) of the compound. In the above example, the relevant elements are effectively carbon and silicon. 
 
-```{r ShowNaturalIsotopeAbundance}
-if (require ("IsoCor")) {
-  isotopes <- IsoCor::isotopes
-  isotopes <- isotopes[isotopes[,"element"] %in% c("C", "Si", "H", "O"), 1:4]
-  data.frame(isotopes, "abund > 1%" = isotopes[, "abundance"]>0.01, check.names = FALSE)
-} else {
-  message("You need package 'IsoCor' to be installed to see the natural abundances of the elements.")
-}
+```{r, echo=FALSE, ShowNaturalIsotopeAbundance}
+structure(list(
+  element = c("H", "H", "C", "C", "O", "O", "O", "Si", "Si", "Si"), 
+  isotope = c("1H", "2H", "12C", "13C", "16O", "17O", "18O", "28Si", "29Si", "30Si"), 
+  mass = c(1.0078, 2.0141, 12, 13.0034, 15.9949, 16.9991, 17.9992, 27.9769, 28.9765, 29.9738), 
+  `abundance [%]` = c(99.99, 0.01, 98.93, 1.07, 99.76, 0.04, 0.21, 92.22, 4.69, 3.09), 
+  `abund > 1%` = c(TRUE, FALSE, TRUE, TRUE, TRUE, FALSE, FALSE, TRUE, TRUE, TRUE)
+), row.names = c(NA, -10L), class = "data.frame")
 ```
 
 As we have 5 TMS groups, we need to consider in total 21 carbon (6 of biological origin and 15 in TMS groups) and 5 silicon atoms in our calculations.
