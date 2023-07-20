@@ -25,7 +25,8 @@ Suggests:
     IsoCor,
     knitr,
     rmarkdown,
-    testthat
+    testthat,
+    vdiffr
 VignetteBuilder: 
     knitr
 Encoding: UTF-8

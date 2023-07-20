@@ -11,5 +11,8 @@ testthat::test_that(
     testthat::expect_equal(length(out), 4L)
     testthat::expect_equal(sum(out), 100L)
     testthat::expect_true(all(c("err", "ratio", "ratio_status", "mid_status") %in% names(attributes(out))))
+
+    testthat::expect_true(is.na(CorMID:::FitMID(md=0)))
+    testthat::expect_equal(attr(CorMID:::FitMID(md=int, td=td, r=r, mid_fix = mid), "ratio"), unlist(list("M+H"=0.8, "M+"=0.1, "M+H2O-CH4"=0.1)))
   }
 )

@@ -179,9 +179,12 @@ plot.CorMID <- function(x, ...) {
 #'@method print CorMID
 print.CorMID <- function(x, ...) {
   stopifnot(is.numeric(x))
+  # $JL$ I had implemented a colored version of the print to console
+  # however, I decided to keep it in standard message style for time being
   cat_or_message <- function(txt) {
-    if (interactive()) { cat(paste0("\033[0;34m", txt, "\033[0m", "\n")) } else { message(txt) }
+    if (interactive() & FALSE) { cat(paste0("\033[0;34m", txt, "\033[0m", "\n")) } else { message(txt) }
   }
+  cat_or_message("[class] 'CorMID'")
   cat_or_message(paste0("MID [%] (", attr(x, "mid_status"), ")"))
   cat("    ", paste(names(x), collapse="    "), "\n", sep="")
   cat(" ", paste(formatC(x, digits=2, format="f", width=5, flag="0"), collapse=" "), "\n", sep="")
@@ -190,6 +193,5 @@ print.CorMID <- function(x, ...) {
   cat("  ", paste(names(r), collapse="   "), "\n", sep="")
   cat(sapply(1:length(r), function(i) { formatC(r[i], digits=2, format="f", width=2+nchar(names(r)[i])) }), "\n")
   cat_or_message("[attr] 'err'")
-  cat(formatC(attr(x, "err"), format="g"))
-  cat_or_message("[class] 'CorMID'")
+  cat(formatC(attr(x, "err"), format="g"),"\n\n")
 }

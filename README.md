@@ -2,6 +2,8 @@
 # CorMID
 
 <!-- badges: start -->
+[![CRAN status](https://www.r-pkg.org/badges/version/CorMID)](https://CRAN.R-project.org/package=CorMID)
+[![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 <!-- badges: end -->
 
 **CorMID** is an R-package providing functions to solve problems during 
