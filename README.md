@@ -6,6 +6,7 @@
 [![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 [![R-CMD-check](https://github.com/janlisec/CorMID/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/janlisec/CorMID/actions/workflows/R-CMD-check.yaml)
 [![test-coverage](https://github.com/janlisec/CorMID/actions/workflows/test-coverage.yaml/badge.svg)](https://github.com/janlisec/CorMID/actions/workflows/test-coverage.yaml)
+[![codecov](https://codecov.io/gh/janlisec/CorMID/branch/main/graph/badge.svg?token=NSY6DITZVH)](https://codecov.io/gh/janlisec/CorMID)
 <!-- badges: end -->
 
 **CorMID** is an R-package providing functions to solve problems during 
