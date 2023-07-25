@@ -1,0 +1,20 @@
+citHeader("The CorMID package implement algorithms to correct mass isotopologue distribution vectors for natural abundance and ionization effects.")
+
+citEntry(
+  entry = "article",
+  title   = "A Flexible Tool to Correct Superimposed Mass Isotopologue Distributions in GC-APCI-MS Flux Experiments.",
+  author  = c(
+              person("Jennifer", "Langenhan"),
+              person("Carsten", "Jaeger"),
+              person("Katharina", "Baum"),
+              person("Mareike", "Simon"),
+              person("Jan", "Lisec")
+            ),
+  year    = 2022,
+  journal = "Metabolites",
+  issue   = 5,
+  volume  = 12,
+  doi     = "10.3390/metabo12050408"
+)
+
+citFooter("This free open-source software implements academic research by the authors and co-workers. If you use it, please support the project by citing the appropriate journal article.")
