@@ -25,6 +25,30 @@ testthat::test_that(
 )
 
 testthat::test_that(
+  desc = "CorMID works with character vector specifying 'r'",
+  code = {
+    testthat::expect_equal(attr(CorMID::CorMID(int=rMID, fml=fml, r = names(r)),"ratio_status"), "estimated")
+  }
+)
+
+testthat::test_that(
+  desc = "CorMID works with numeric vector specifying 'r'",
+  code = {
+    testthat::expect_equal(attr(CorMID::CorMID(int=rMID, fml=fml, r = unlist(r)),"ratio_status"), "fixed")
+  }
+)
+
+testthat::test_that(
+  desc = "CorMID removes infinite intensities",
+  code = {
+    rMID2 <- rMID
+    rMID2["M+3"] <- NA
+    # removing the information on M+3 will lead to M3 to be estimated as 0
+    testthat::expect_equal(unname(CorMID::CorMID(int=rMID2, fml=fml)[4]), 0)
+  }
+)
+
+testthat::test_that(
   desc = "CorMID plot returns expected result",
   code = {
     vdiffr::expect_doppelganger(
@@ -57,3 +81,6 @@ testthat::test_that(
     })
   }
 )
+
+# clean up of global objects
+rm(fml, mid, r, rMID, out)

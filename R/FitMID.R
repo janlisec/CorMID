@@ -92,7 +92,12 @@ FitMID <- function(md=NULL, td=NULL, r=NULL, mid_fix=NULL, prec=0.01, trace_step
       tmp_print[,1:length(mid_start)] <- round(100*tmp_print[,1:length(mid_start)],2)
       tmp_print <- cbind(tmp_print, w_m_errs)
       print(utils::head(tmp_print[order(w_m_errs),]))
-      selected_value <- readline(prompt="Type [row_number+enter] to continue stepwise or [enter] without any number to continue to end:")
+      # the interactive statement is required to allow a testthat function for this part of FitMID
+      if (interactive()) {
+        selected_value <- readline(prompt="Type [row_number+enter] to continue stepwise or [enter] without any number to continue to end:")
+      } else {
+        selected_value <- ""
+      }
       if (selected_value=="") {
         trace_steps <- FALSE
         mid_start <- mid_local[which.min(w_m_errs),]
