@@ -15,8 +15,7 @@ Description: In metabolic flux experiments tracer molecules (often glucose
     correct such effects in gas chromatography atmospheric pressure
     chemical ionization mass spectrometry analyses.
 License: GPL (>= 3)
-URL: https://doi.org/10.3390/metabo12050408
-git_url: https://github.com/janlisec/CorMID
+URL: https://github.com/janlisec/CorMID
 Depends: 
     R (>= 3.50)
 Imports:
