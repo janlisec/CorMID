@@ -89,6 +89,8 @@ CorMID <- function(int=NULL, fml="", r=NULL, penalize=7, mid_fix=NULL, trace_ste
   }
   attr(fml, "nbio") <- min(lim_nbio, attr(fml, "nbio"))
   attr(fml, "nmz") <- attr(fml, "nbio")+diff(range(known_frags))
+  # compute theoretical distribution matrix from formula (assuming 1% 13C abundance)
+  td <- CalcTheoreticalMDV(fml=fml, nbio=attr(fml, "nbio"), nmz=attr(fml, "nmz"))
 
   # QC for r
   # if r is unspecified
@@ -119,11 +121,6 @@ CorMID <- function(int=NULL, fml="", r=NULL, penalize=7, mid_fix=NULL, trace_ste
   }
   if (!all(names(int) %in% names(rawMID))) stop("rawMID specified without names indicating position relative to [M+H].")
   rawMID[names(int)] <- int
-  # ensure that intensity vector is normalized to sum
-  rawMID <- rawMID/sum(rawMID)
-
-  # compute theoretical distribution matrix from formula (assuming 1% 13C abundance)
-  td <- CalcTheoreticalMDV(fml=fml, nbio=attr(fml, "nbio"), nmz=attr(fml, "nmz"))
 
   # QC for mid_fix
   if (!is.null(mid_fix)) {
@@ -193,5 +190,5 @@ print.CorMID <- function(x, ...) {
   cat("  ", paste(names(r), collapse="   "), "\n", sep="")
   cat(sapply(1:length(r), function(i) { formatC(r[i], digits=2, format="f", width=2+nchar(names(r)[i])) }), "\n")
   cat_or_message("[attr] 'err'")
-  cat(formatC(attr(x, "err"), format="g"),"\n\n")
+  cat(ifelse(is.na(attr(x, "err")), NA, formatC(attr(x, "err"), format="g")),"\n\n")
 }

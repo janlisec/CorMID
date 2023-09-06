@@ -22,13 +22,17 @@ FitMID <- function(md=NULL, td=NULL, r=NULL, mid_fix=NULL, prec=0.01, trace_step
 
   # default return value
   if (sum(md)==0) {
-    out <- rep(NA, ifelse(is.null(td), length(md), nrow(td)))
-    if (is.null(td)) names(out) <- row.names(td) else names(out) <- names(md)
+    message("No finite intensity values provided. Return NA vector.")
+    out <- as.numeric(rep(NA, ifelse(is.null(td), length(md), nrow(td))))
+    if (is.null(td)) names(out) <- names(md) else names(out) <- row.names(td)
     attr(out, "err") <- unlist(list("err"=NA))
     if (prod(dim(r))>1) attr(out, "ratio") <- apply(r,2,stats::median)/sum(apply(r,2,stats::median)) else attr(out, "ratio") <- r
     attr(out, "ratio_status") <- ifelse(prod(dim(r))>1 && all(apply(r,2,diff)==0), "fixed", "estimated")
     attr(out, "mid_status") <- ifelse(!is.null(mid_fix), "fixed", "estimated")
     return(out)
+  } else {
+    # ensure that intensity vector is normalized to sum
+    md <- md/sum(md)
   }
 
   # set up r_fixed for internal use
