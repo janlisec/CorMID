@@ -48,25 +48,24 @@ artificial labeling (e.g. by a <sup>13</sup>C-Glucose tracer) and mass
 spectrometry artifacts (i.e. several potential adducts).
 
 You can create and visualize such a complex mass spectrum by providing a
-chemical formula, the true labeling status and an adduct distribution
-like follows:
+*chemical formula*, the *true MID* and an *adduct distribution* like
+follows:
 
 ``` r
 # a chemical formula, here: Lactic acid 2 TMS
 fml <- "C9H22O3Si2"
 
-# the true labeling status, here: 10% U13C enriched
+# the true mass isotopologue distribution, here: 10% U13C enriched
 mid <- c(0.9, 0, 0, 0.1)
 
-# adduct distribution, here: Three different APCI adducts formed
+# adduct distribution, here: 3 different APCI adducts formed
 r <- list("M+H" = 0.8, "M-H" = 0.1, "M+H2O-CH4" = 0.1)
 
-# reconstruct and plot the measured intensity vector
-(rMID <- CorMID::recMID(mid = mid, r = r, fml = fml))
-#>        M-2        M-1        M+0        M+1        M+2        M+3        M+4 
-#> 0.06901842 0.01398425 0.55840285 0.12063392 0.12056965 0.08474875 0.01838686 
-#>        M+5 
-#> 0.01425529 
+# reconstruct the measured intensity vector
+rMID <- CorMID::recMID(mid = mid, r = r, fml = fml)
+round(rMID, 3)
+#>   M-2   M-1   M+0   M+1   M+2   M+3   M+4   M+5 
+#> 0.069 0.014 0.558 0.121 0.121 0.085 0.018 0.014 
 #> attr(,"class")
 #> [1] "recMID"
 ```
@@ -83,10 +82,11 @@ text(x = 3, y = 0.4, labels = "[M+H]+", pos=2)
 ![](man/figures/README-exmpl1_plot-1.png)<!-- -->
 
 Assuming that you have measured these intensities in your experiment,
-now **CorMID** could estimate the underlying *MID* and *r* for you:
+the main function of **CorMID** can estimate the underlying *MID* and
+*r* for you:
 
 ``` r
-# disentangle the adduct ratios and true enrichment from the above test data
+# disentangle the adduct ratios and true isotopologue distribution (enrichment) from the above test data
 out <- CorMID::CorMID(int = rMID, fml = fml)
 print(out)
 #> [class] 'CorMID'
@@ -101,11 +101,11 @@ print(out)
 ```
 
 Please note: no information regarding the true labeling status and the
-adduct distribution was provided in this function call. **CorMID** is
-able to *guess* the most likely combination.
+adduct distribution was provided in the above function call. **CorMID**
+is able to *guess* the most likely combination.
 
 This allows you to perform the correction for natural abundance and
-technical artifacts in a single step and extract the relevant labelling
+technical artifacts in a single step and extract the relevant labeling
 status for flux analysis or other statistical evaluations.
 
 ## Detailed documentation

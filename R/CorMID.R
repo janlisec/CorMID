@@ -1,6 +1,6 @@
 #' @title CorMID.
-#' @description \code{CorMID} will compute a MID (Mass Isotopomer Distribution)
-#'  based on measured ion intensities in GC-APCI-MS.
+#' @description \code{CorMID} will compute a MID (Mass Isotopologues
+#'     Distribution) based on measured ion intensities in GC-APCI-MS.
 #' @details Let's assume we measured the ion intensities of all 3 isotopes of
 #'     an individual compound containing 2 carbons and observe a vector
 #'     of \{978,22,0\}.

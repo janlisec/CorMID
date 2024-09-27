@@ -54,8 +54,8 @@ chemical formula.}
 Estimated percent representation of each isotopologue measured (corMID).
 }
 \description{
-\code{CorMID} will compute a MID (Mass Isotopomer Distribution)
- based on measured ion intensities in GC-APCI-MS.
+\code{CorMID} will compute a MID (Mass Isotopologues
+    Distribution) based on measured ion intensities in GC-APCI-MS.
 }
 \details{
 Let's assume we measured the ion intensities of all 3 isotopes of

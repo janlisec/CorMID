@@ -46,7 +46,7 @@ FitMID <- function(md=NULL, td=NULL, r=NULL, mid_fix=NULL, prec=0.01, trace_step
   }
   while (min(mid_steps)>prec) mid_steps <- c(mid_steps, mid_steps[length(mid_steps)]*step_increment)
 
-  # optimize isotopomer distribution
+  # optimize isotopologue distribution
   for (dst in mid_steps) {
     mid_local <- poss_local(vec=mid_start, d=dst, prec = prec/10, limits=NULL, length.out=3)
     if (trace_steps) {
