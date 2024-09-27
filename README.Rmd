@@ -22,6 +22,7 @@ knitr::opts_chunk$set(
 [![test-coverage](https://github.com/janlisec/CorMID/actions/workflows/test-coverage.yaml/badge.svg)](https://github.com/janlisec/CorMID/actions/workflows/test-coverage.yaml)
 [![codecov](https://codecov.io/gh/janlisec/CorMID/branch/main/graph/badge.svg?token=NSY6DITZVH)](https://app.codecov.io/gh/janlisec/CorMID)
 [![CRAN status](https://www.r-pkg.org/badges/version/CorMID)](https://CRAN.R-project.org/package=CorMID)
+[![DOI](https://img.shields.io/badge/doi-10.3390/metabo12050408-yellow.svg)](https://doi.org/10.3390/metabo12050408)
 <!-- badges: end -->
 
 **CorMID** is an R-package providing functions to solve problems during 
@@ -41,7 +42,7 @@ analyses.
 You can install the development version of CorMID from 
 [GitHub](https://github.com/) with:
 
-``` r
+```{r install, eval = FALSE}
 # install.packages("devtools")
 devtools::install_github("janlisec/CorMID")
 ```
@@ -60,7 +61,7 @@ You can create and visualize such a complex mass spectrum by providing a
 chemical formula, the true labeling status and an adduct distribution like 
 follows:
 
-``` r
+```{r exmpl1}
 library(CorMID)
 # Lactic acid 2 TMS
 fml <- "C9H22O3Si2"
@@ -75,7 +76,7 @@ plot(rMID)
 Assuming that you have measured these intensities in your experiment, **CorMID**
 could estimate the underlying *MID* and *r* for you:
 
-``` r
+```{r exmpl2}
 # disentangle the adduct ratios and true enrichment from the above test data
 out <- CorMID::CorMID(int = rMID, fml=fml, prec=0.001, r=unlist(r))
 print(out)

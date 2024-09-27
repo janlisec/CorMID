@@ -12,6 +12,7 @@ stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://
 [![codecov](https://codecov.io/gh/janlisec/CorMID/branch/main/graph/badge.svg?token=NSY6DITZVH)](https://app.codecov.io/gh/janlisec/CorMID)
 [![CRAN
 status](https://www.r-pkg.org/badges/version/CorMID)](https://CRAN.R-project.org/package=CorMID)
+[![DOI](https://img.shields.io/badge/doi-10.3390/metabo12050408-yellow.svg)](https://doi.org/10.3390/metabo12050408)
 <!-- badges: end -->
 
 **CorMID** is an R-package providing functions to solve problems during
@@ -60,16 +61,32 @@ mid <- c(0.9, 0, 0, 0.1)
 r <- list("M+H" = 0.8, "M-H" = 0.1, "M+H2O-CH4" = 0.1)
 # reconstruct and plot the measured intensity vector
 (rMID <- CorMID::recMID(mid = mid, r = r, fml = fml))
+#>        M-2        M-1        M+0        M+1        M+2        M+3        M+4 
+#> 0.06901842 0.01398425 0.55840285 0.12063392 0.12056965 0.08474875 0.01838686 
+#>        M+5 
+#> 0.01425529 
+#> attr(,"class")
+#> [1] "recMID"
 plot(rMID)
 ```
 
-Assuming that you have measured these intensities in your experiment,
-**CorMID** could estimate the underlying *MID* and *r* for you:
+<img src="man/figures/README-exmpl1-1.png" width="100%" /> Assuming that
+you have measured these intensities in your experiment, **CorMID** could
+estimate the underlying *MID* and *r* for you:
 
 ``` r
 # disentangle the adduct ratios and true enrichment from the above test data
 out <- CorMID::CorMID(int = rMID, fml=fml, prec=0.001, r=unlist(r))
 print(out)
+#> [class] 'CorMID'
+#> MID [%] (estimated)
+#>     M0    M1    M2    M3
+#>  90.14 00.00 00.00 09.86
+#> [attr] 'r' (fixed)
+#>   M+H   M-H   M+H2O-CH4
+#>  0.80  0.10        0.10
+#> [attr] 'err'
+#> 0.001453
 ```
 
 ## Detailed documentation
