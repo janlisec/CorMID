@@ -13,7 +13,8 @@ CorMID(
   penalize = 7,
   mid_fix = NULL,
   trace_steps = FALSE,
-  prec = 0.01
+  prec = 0.01,
+  algo = c("CorMID", "Rdisop")
 )
 
 \method{plot}{CorMID}(x, ...)
@@ -21,7 +22,8 @@ CorMID(
 \method{print}{CorMID}(x, ...)
 }
 \arguments{
-\item{int}{Named numeric vector of measured ion intensities of a fragment. Names will give position of values relative to M+H (see details).}
+\item{int}{Named numeric vector of measured ion intensities of a fragment.
+Names will give position of values relative to M+H (see details).}
 
 \item{fml}{Chemical formula of the fragment as string.}
 
@@ -30,13 +32,19 @@ OR a named numeric giving relative amounts of fragments
 OR NULL (all known fragments will  be estimated)
 OR a 2-row matrix giving the lower and upper allowed ratio (see examples).}
 
-\item{penalize}{Numeric exponent penalizing solutions with low M+H occurrence. Formula is 1+3*(1-x)^penalty. NA to omit penalizing.}
+\item{penalize}{Numeric exponent penalizing solutions with low M+H occurrence.
+Formula is 1+3*(1-x)^penalty. Set to NA to omit penalizing.}
 
-\item{mid_fix}{May provide a numeric vector used as a given MID. Allows to estimate \emph{r} individually.}
+\item{mid_fix}{May provide a numeric vector used as a given MID. Allows to
+estimate \emph{r} individually.}
 
-\item{trace_steps}{For testing purposes. Print the results of intermediate steps to console.}
+\item{trace_steps}{For testing purposes. Print the results of intermediate
+steps to console.}
 
 \item{prec}{Precision of the estimation of MID, set to 1\% as default.}
+
+\item{algo}{The algorithm used to estimate the isotopic distribution of a
+chemical formula.}
 
 \item{x}{Object of class CorMID.}
 
@@ -50,64 +58,69 @@ Estimated percent representation of each isotopologue measured (corMID).
  based on measured ion intensities in GC-APCI-MS.
 }
 \details{
-Let's assume we measured the ion intensities of all 3 isotopes of an
- individual compound containing 2 carbons and observe a vector of {978,22,0}.
- We may calculate the enrichment \strong{E} out of this data, i.e. the relative proportion
- of 13C vs total carbon which will amount to about 1.1\% (the natural 13C abundance)
- under standard conditions.
- The equivalent corMID vector would be {1,0,0}, indicating that the non-labeled
- isotopologue (where non-labeled means non-labeled above the natural 1.1\%)
- is the only component observed.
- During a labeling experiment we may change the measurement values in different
- ways (either labeling only one carbon or both), which potentially can translate
- into similar values for \strong{E} being larger 1.1\%.
- The MIDs will provide additional information about the isotopologue fraction
- which gave rise to the observed \strong{E}'s (cf. examples). The \emph{r} parameter
- indicates an overlay of chemical rearrangements which may occur.
+Let's assume we measured the ion intensities of all 3 isotopes of
+    an individual compound containing 2 carbons and observe a vector
+    of \{978,22,0\}.
+    We may calculate the enrichment \strong{E} out of this data, i.e. the
+    relative proportion of \ifelse{html}{\out{<sup>13</sup>C}}{\eqn{^13^C}}
+    vs total carbon which will amount to about 1.1\% (the natural
+    \ifelse{html}{\out{<sup>13</sup>C}}{\eqn{^13^C}} abundance) under
+    standard conditions.
+    The equivalent corMID vector would be \{1,0,0\}, indicating that the
+    non-labeled isotopologue (where non-labeled means non-labeled above the
+    natural 1.1\%) is the only component observed.
+    During a labeling experiment we may change the measurement values in
+    different ways (either labeling only one carbon or both), which
+    potentially can translate into similar values for \strong{E} being
+    larger 1.1\%.  The MIDs will provide additional information about the
+    isotopologue fraction which gave rise to the observed \strong{E}'s (cf.
+    examples). The \emph{r} parameter  indicates an overlay of chemical
+    rearrangements which may occur.
 }
 \examples{
 # make up some fake measurement data for Pyruvic acid 2TMS with 3 biological carbon
 # assuming 10\% labeling at M3 and 2 fragments
 fml <- "C9H20O3Si2"
-mid <- c(0.9,0,0,0.1)
-r <- unlist(list("M+H"=0.8, "M+H2O-CH4"=0.2))
-int <- CorMID::recMID(mid=mid, r=r, fml=fml)
+mid <- c(0.9, 0, 0, 0.1)
+r <- unlist(list("M+H" = 0.8, "M+H2O-CH4" = 0.2))
+int <- CorMID::recMID(mid = mid, r = r, fml = fml)
 plot(int)
 
 # full estimation of M and r
-out <- CorMID::CorMID(int=int, fml=fml)
+out <- CorMID::CorMID(int = int, fml = fml)
+out
 plot(out)
 
 # get an improved result setting r to the correct values
-CorMID::CorMID(int=int, fml=fml, r=r, prec=0.0001)
+CorMID::CorMID(int = int, fml = fml, r = r, prec = 0.0001)
 
 # provoke a wrong estimation using a fixed r
-CorMID::CorMID(int=int, fml=fml, r=unlist(list("M+H"=1)))
+CorMID::CorMID(int = int, fml = fml, r = unlist(list("M+H" = 1)))
 
 # calculate r if you know the true corMID for a compound
-r <- attr(CorMID::CorMID(int=int, fml=fml, mid_fix=c(0.9,0,0,0.1)), "ratio")
-round(CorMID::CorMID(int=int, fml=fml, r=r, prec=0.0001),3)
+r <- attr(CorMID::CorMID(int = int, fml = fml, mid_fix = c(0.9, 0, 0, 0.1)), "ratio")
+round(CorMID::CorMID(int = int, fml = fml, r = r, prec = 0.0001), 3)
 
 # deal with missing intensity values
-CorMID::CorMID(int=int[-3], fml=fml)
+CorMID::CorMID(int = int[-3], fml = fml)
 
 \donttest{
 # perform estimation with banded r and observation of optimization steps
-r <- matrix(c(0.5,1,0,0.5,0,0.5), nrow=2, dimnames=list(NULL,c("M+H","M+","M+H2O-CH4")))
-CorMID::CorMID(int=int, fml=fml, r=r, trace=TRUE)
+r <- matrix(c(0.5, 1, 0, 0.5, 0, 0.5), nrow = 2, dimnames = list(NULL, c("M+H", "M+", "M+H2O-CH4")))
+CorMID::CorMID(int = int, fml = fml, r = r, trace = TRUE)
 
-#process Gln data from publication
+# process Gln data from publication
 utils::data("prep", package = "CorMID")
-int <- prep[[24]][["int"]][,6]
+int <- prep[[24]][["int"]][, 6]
 fml <- prep[[24]]$fml
-CorMID::CorMID(int=int, fml=fml, trace=TRUE)
+CorMID::CorMID(int = int, fml = fml, trace = TRUE)
 
 # check the effect of the penalize parameter on selection of adducts
 int <- c(1560, 119203, 41927, 16932, 4438)
 names(int) <- c(-2, 0, 1, 2, 3)
 fml <- "C19H37NO4Si3"
-CorMID::CorMID(int=int, fml=fml, r=NULL, trace=TRUE)
-CorMID::CorMID(int=int, fml=fml, r=NULL, trace=TRUE, penalize=7)
+CorMID::CorMID(int = int, fml = fml, r = NULL, trace = TRUE)
+CorMID::CorMID(int = int, fml = fml, r = NULL, trace = TRUE, penalize = 7)
 }
 }
 \references{

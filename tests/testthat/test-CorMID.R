@@ -2,8 +2,8 @@
 fml <- "C9H20O3Si2"
 mid <- c(0.9,0,0,0.1)
 r <- list("M+H"=0.8, "M-H"=0.1, "M+H2O-CH4"=0.1)
-rMID <- CorMID::recMID(mid=mid, r=r, fml=fml)
-out <- CorMID::CorMID(int=rMID, fml=fml)
+rMID <- CorMID::recMID(mid=mid, r=r, fml=fml, algo = "Rdisop")
+out <- CorMID::CorMID(int=rMID, fml=fml, algo = "Rdisop")
 # avoid creating a Rplots.pdf in testthat folder
 pdf(NULL)
 

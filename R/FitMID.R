@@ -92,8 +92,17 @@ FitMID <- function(md=NULL, td=NULL, r=NULL, mid_fix=NULL, prec=0.01, trace_step
       # cat("\n\nObserved fragment ratio ranges:\n")
       # print(apply(sapply(test_mid, function(x){ x$r }),1,range))
       cat("\nTop candidates found:\n")
-      tmp_print <- plyr::ldply(test_mid, function(x) { c("_____"="     ", formatC(x = x[["r"]], format = "f", digits = 2), "_____"="     ", "error"=formatC(x[["err"]], format="e", digits=2)) })
-      tmp_print[,1:length(mid_start)] <- round(100*tmp_print[,1:length(mid_start)],2)
+      #tmp_print <- plyr::ldply(test_mid, function(x) { c("_____"="     ", formatC(x = x[["r"]], format = "f", digits = 2), "_____"="     ", "error"=formatC(x[["err"]], format="e", digits=2)) })
+      #tmp_print[,1:length(mid_start)] <- round(100*tmp_print[,1:length(mid_start)],2)
+
+      spacer_col <- data.frame("___"=" | ", check.names = FALSE)
+      tmp_print <- cbind(
+        round(100*attr(test_mid, "split_labels"),2),
+        spacer_col,
+        t(sapply(test_mid, function(x) { c(formatC(x = x[["r"]], format = "f", digits = 2), spacer_col, "error" = formatC(x[["err"]], format="e", digits=2)) }))
+      )
+      rownames(tmp_print) <- names(w_m_errs)
+
       tmp_print <- cbind(tmp_print, w_m_errs)
       print(utils::head(tmp_print[order(w_m_errs),]))
       # the interactive statement is required to allow a testthat function for this part of FitMID

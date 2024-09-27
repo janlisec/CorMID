@@ -4,7 +4,12 @@
 \alias{CalcTheoreticalMDV}
 \title{CalcTheoreticalMDV.}
 \usage{
-CalcTheoreticalMDV(fml = NULL, nbio = NULL, nmz = NULL)
+CalcTheoreticalMDV(
+  fml = NULL,
+  nbio = NULL,
+  nmz = NULL,
+  algo = c("CorMID", "Rdisop")
+)
 }
 \arguments{
 \item{fml}{The chemical formula of the compound.}
@@ -12,6 +17,8 @@ CalcTheoreticalMDV(fml = NULL, nbio = NULL, nmz = NULL)
 \item{nbio}{Provide the number of biological carbon within \code{fml} explicitly.}
 
 \item{nmz}{Provide the number of measured isotopes of \code{fml} explicitly.}
+
+\item{algo}{algo.}
 }
 \value{
 A matrix of theoretical mass distribution vectors.
@@ -39,4 +46,9 @@ CalcTheoreticalMDV(fml = fml, nmz = 4)
 
 # limit to a smaller number of biological carbon (i.e. if compounds are silylated)
 CalcTheoreticalMDV(fml = fml, nmz = 4, nbio = 2)
+CalcTheoreticalMDV(fml = fml, nmz = 4, nbio = 2, algo="Rdisop")
+
+# from Vignette
+fml <- "C21Si5"
+round(CalcTheoreticalMDV(fml = fml, nbio = 21, nmz = 21)[-(5:19), -(5:19)], 4)
 }

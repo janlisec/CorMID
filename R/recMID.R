@@ -9,6 +9,7 @@
 #'@param r Fragment ratios. A numeric vector with sum=1.
 #'@param fml A compound formula.
 #'@param cutoff Remove values below this threshold from output vector.
+#'@param algo The algorithm used to estimate the isotopic distribution of a chemical formula.
 #'@return A reconstructed MID.
 #'@export
 #'@examples
@@ -22,12 +23,14 @@
 #'\donttest{
 #'CorMID::CorMID(int = rMID, fml=fml, prec=0.001, r=unlist(r), trace_steps = TRUE)
 #'}
-recMID <- function(mid=NULL, r=list("M+H"=1), fml=NULL, cutoff=0.001) {
+recMID <- function(mid=NULL, r=list("M+H"=1), fml=NULL, cutoff=0.001, algo = c("CorMID", "Rdisop")) {
+  algo <- match.arg(algo)
+  if (algo=="Rdisop") verify_suggested("Rdisop")
   # ensure that sum(mid)==1
   mid <- mid/sum(mid)
   nbio <- ifelse(is.null(attr(fml, "nbio")), length(mid)-1, attr(fml, "nbio"))
   nmz <- ifelse(is.null(attr(fml, "nmz")), length(mid)+3, attr(fml, "nmz"))
-  td <- CalcTheoreticalMDV(fml=fml, nbio = nbio, nmz = nmz)
+  td <- CalcTheoreticalMDV(fml=fml, nbio = nbio, nmz = nmz, algo = algo)
   n <- ncol(td)
   s <- colSums(td*mid)
   # ensure that only (and all) specified r are available

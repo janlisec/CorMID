@@ -5,7 +5,13 @@
 \alias{plot.recMID}
 \title{recMID.}
 \usage{
-recMID(mid = NULL, r = list(`M+H` = 1), fml = NULL, cutoff = 0.001)
+recMID(
+  mid = NULL,
+  r = list(`M+H` = 1),
+  fml = NULL,
+  cutoff = 0.001,
+  algo = c("CorMID", "Rdisop")
+)
 
 \method{plot}{recMID}(x, ...)
 }
@@ -17,6 +23,8 @@ recMID(mid = NULL, r = list(`M+H` = 1), fml = NULL, cutoff = 0.001)
 \item{fml}{A compound formula.}
 
 \item{cutoff}{Remove values below this threshold from output vector.}
+
+\item{algo}{The algorithm used to estimate the isotopic distribution of a chemical formula.}
 
 \item{x}{Object of class recMID.}
 
