@@ -71,7 +71,7 @@ CalcTheoreticalMDV <- function(fml = NULL, nbio = NULL, nmz = NULL, algo = c("Co
   #   }
   } else if (algo == "CorMID") {
     for (i in 1:nrow(td)) {
-      bd <- get_isotopes(fml = paste0(names(nce), nce, collapse=""), prec = 8)[,2]
+      bd <- getMID(fml = paste0(names(nce), nce, collapse=""), prec = 8)[,2]
       n <- maxisotopes+1-(i-1)
       if (length(bd)<n) bd <- c(bd, rep(0, n-length(bd)))
       if (length(bd)>n) bd <- bd[1:n]

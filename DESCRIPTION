@@ -1,8 +1,8 @@
 Type: Package
 Package: CorMID
 Title: Correct Mass Isotopologue Distribution Vectors
-Version: 0.1.11
-Date: 2024-09-25
+Version: 0.2.1
+Date: 2024-09-27
 Authors@R: 
     person("Jan", "Lisec", , "jan.lisec@bam.de", role = c("aut", "cre"), comment = c(ORCID = "0000-0003-1220-2286"))
 Maintainer: Jan Lisec <jan.lisec@bam.de>
@@ -19,7 +19,6 @@ URL: https://github.com/janlisec/CorMID
 Depends: 
     R (>= 3.50)
 Imports:
-    plyr
 Suggests: 
     knitr,
     Rdisop,

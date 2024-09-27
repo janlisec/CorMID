@@ -23,7 +23,7 @@
 #' @source Imported from the enviPat package.
 "isotopes"
 
-#' @title Pre-calculated index matrices to speed up calculations in function \code{get_isotopes}.
+#' @title Pre-calculated index matrices to speed up calculations in function \code{getMID}.
 #' @docType data
 #' @format A list of 36 example metabolites.
 #' @source Calculated using the internal CorMID function `get_idx_mat`.

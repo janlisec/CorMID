@@ -3,7 +3,7 @@
 \docType{data}
 \name{precalc_idx}
 \alias{precalc_idx}
-\title{Pre-calculated index matrices to speed up calculations in function \code{get_isotopes}.}
+\title{Pre-calculated index matrices to speed up calculations in function \code{getMID}.}
 \format{
 A list of 36 example metabolites.
 }
@@ -14,6 +14,6 @@ Calculated using the internal CorMID function `get_idx_mat`.
 precalc_idx
 }
 \description{
-Pre-calculated index matrices to speed up calculations in function \code{get_isotopes}.
+Pre-calculated index matrices to speed up calculations in function \code{getMID}.
 }
 \keyword{datasets}

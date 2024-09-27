@@ -1,8 +1,10 @@
-#' @title get_isotopes.
-#' @description \code{get_isotopes} will determine the measureable isotopic
+#' @title getMID.
+#' @description \code{getMID} will determine the measurable isotopic
 #'    spectrum for a chemical formula.
 #' @details The computation yields similar results that would be obtained by
 #'    packages `Rdisop` or `enviPat` but is completely in R (no C++ dependencies).
+#'    However, it is approx. 7-fold slower than `Rdisop`. Where processing speed
+#'    is of importance, please use the `algo` parameter of the `CorMID` function.
 #' @param fml Chemical formula.
 #' @param resolution Currently fixed to 20000 (might be made changable in the future).
 #' @param cutoff Discard peaks below this threshold (relative to highest peak).
@@ -12,10 +14,10 @@
 #' @return A two column matrix for mz and int values of the calculated spectrum.
 #' @examples
 #' fml <- "C3H7Cl1"
-#' get_isotopes(fml)
+#' getMID(fml)
 #' \dontrun{
 #' bench::mark(
-#'  CorMID = dim(get_isotopes(fml, prec=5)),
+#'  CorMID = dim(getMID(fml, prec=5)),
 #'  Rdisop = dim(round(t(Rdisop::getMolecule(fml)$isotopes[[1]])[1:4,],5))
 #' )
 #' }
@@ -24,12 +26,12 @@
 #' data(chemforms, package = "enviPat")
 #' chemforms <- chemforms[-grep("[[]", chemforms)]
 #' bench::mark(
-#'  CorMID = length(lapply(chemforms, get_isotopes)),
+#'  CorMID = length(lapply(chemforms, getMID)),
 #'  Rdisop = length(lapply(chemforms, Rdisop::getMolecule))
 #' )
 #' }
 #' @export
-get_isotopes <- function(fml, resolution = 20000, cutoff = 0.0001, isotopes = NULL, prec = 4, step = 0) {
+getMID <- function(fml, resolution = 20000, cutoff = 0.0001, isotopes = NULL, prec = 4, step = 0) {
   #print(fml)
   if (is.null(isotopes)) isotopes <- CorMID::isotopes
   #browser()
@@ -73,7 +75,7 @@ get_isotopes <- function(fml, resolution = 20000, cutoff = 0.0001, isotopes = NU
   return(df_jl[df_jl[, 2] > cutoff, ])
 }
 
-# get_isotopes2 <- function(fml, resolution = 20000, cutoff = 0.0001, isotopes = NULL, prec = 4, step = 0) {
+# getMID2 <- function(fml, resolution = 20000, cutoff = 0.0001, isotopes = NULL, prec = 4, step = 0) {
 #   if (is.null(isotopes)) isotopes <- CorMID::isotopes
 #   isotopes[isotopes$element=="D","isotope"] <- "D1"
 #   fml_cce <- cce(fml)[[1]]

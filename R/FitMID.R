@@ -2,14 +2,11 @@
 #' @description \code{FitMID} will ...
 #' @param md Measured distribution. Normalized (i.e. sum=1) raw intensity vector.
 #' @param td Theoretical intensity distribution (using function 'CalcTheoreticalMDV').
-#' @param r matrix of considere fragments and their potential occurence.
+#' @param r matrix of consider fragments and their potential occurrence.
 #' @param mid_fix May provide a numeric vector used as a given MID. Allows to estimate \code{r} individually.
 #' @param prec Precision of the estimation of MID, set to 1\% as default.
 #' @param trace_steps For testing purposes. Print the results of intermediate steps to console.
-#' @param penalize Numeric exponent penalizing solutions with low M+H occurence. Formula is 1+3*(1-x)^penalty. NA to omit penalizing.
-#' @importFrom stats median
-#' @importFrom utils head
-#' @importFrom plyr ldply alply
+#' @param penalize Numeric exponent penalizing solutions with low M+H occurrence. Formula is 1+3*(1-x)^penalty. NA to omit penalizing.
 #' @return Fitted MID with attributes.
 #' @keywords internal
 #' @noRd
@@ -36,15 +33,15 @@ FitMID <- function(md=NULL, td=NULL, r=NULL, mid_fix=NULL, prec=0.01, trace_step
   }
 
   # set up r_fixed for internal use
-  r_fixed <- ifelse(all(apply(r,2,diff)==0), TRUE, FALSE)
+  r_fixed <- ifelse(all(apply(r, 2, diff)==0), TRUE, FALSE)
 
-  # establish starting parameters and stepsize...
+  # establish starting parameters and step size...
   # ...for mid
   if (!is.null(mid_fix)) {
-    mid_start <- mid_fix; names(mid_start) <- rownames(td)
+    mid_start <- stats::setNames(mid_fix, rownames(td))
     mid_steps <- 0
   } else {
-    mid_start <- rep(0.5,nrow(td)); names(mid_start) <- rownames(td)
+    mid_start <- stats::setNames(rep(0.5,nrow(td)), rownames(td))
     mid_steps <- 0.5
   }
   while (min(mid_steps)>prec) mid_steps <- c(mid_steps, mid_steps[length(mid_steps)]*step_increment)
@@ -56,7 +53,7 @@ FitMID <- function(md=NULL, td=NULL, r=NULL, mid_fix=NULL, prec=0.01, trace_step
       cat(paste("\nTesting", nrow(mid_local), "MID solutions."))
       cat(paste("\nUsing stepwidth for MID:", round(dst,5)))
     }
-    test_mid <- plyr::alply(.data=as.data.frame(mid_local), 1, function (x) {
+    test_mid <- apply(as.data.frame(mid_local), 1, function (x) {
       pre_mid <- apply(td*unlist(x),2,sum)
       if (r_fixed) {
         r_steps <- 0.5
@@ -86,42 +83,26 @@ FitMID <- function(md=NULL, td=NULL, r=NULL, mid_fix=NULL, prec=0.01, trace_step
       mid_err <- calc_mid_error(md=md, reconstructed_mid=pre_mid, best_r=best_r)
       return(list("err"=mid_err, "r"=round(best_r,4)))
     })
-    w_m_errs <- weight_errors(rMpH = sapply(test_mid,function(x){x$r["M+H"]}), errs = sapply(test_mid,function(x){x$err}), penalize = penalize)
-    best <- which.min(w_m_errs)
+    # compute weighted errors (penalty for solutions with low M+H ion, which is unlikely)
+    w_m_errs <- weight_errors(
+      rMpH = sapply(test_mid, function(x) { x$r["M+H"] }),
+      errs = sapply(test_mid, function(x) { x$err }),
+      penalize = penalize
+    )
+    # get new starting position of MID either through user input or as optimal solution of previous step via min of weighted errors
     if (trace_steps) {
-      # cat("\n\nObserved fragment ratio ranges:\n")
-      # print(apply(sapply(test_mid, function(x){ x$r }),1,range))
-      cat("\nTop candidates found:\n")
-      #tmp_print <- plyr::ldply(test_mid, function(x) { c("_____"="     ", formatC(x = x[["r"]], format = "f", digits = 2), "_____"="     ", "error"=formatC(x[["err"]], format="e", digits=2)) })
-      #tmp_print[,1:length(mid_start)] <- round(100*tmp_print[,1:length(mid_start)],2)
-
-      spacer_col <- data.frame("___"=" | ", check.names = FALSE)
-      tmp_print <- cbind(
-        round(100*attr(test_mid, "split_labels"),2),
-        spacer_col,
-        t(sapply(test_mid, function(x) { c(formatC(x = x[["r"]], format = "f", digits = 2), spacer_col, "error" = formatC(x[["err"]], format="e", digits=2)) }))
-      )
-      rownames(tmp_print) <- names(w_m_errs)
-
-      tmp_print <- cbind(tmp_print, w_m_errs)
-      print(utils::head(tmp_print[order(w_m_errs),]))
-      # the interactive statement is required to allow a testthat function for this part of FitMID
-      if (interactive()) {
-        selected_value <- readline(prompt="Type [row_number+enter] to continue stepwise or [enter] without any number to continue to end:")
-      } else {
-        selected_value <- ""
-      }
-      if (selected_value=="") {
+      new_mid_start <- select_mid_start_manual(test_mid, mid_local, w_m_errs)
+      if (is.null(new_mid_start)) {
         trace_steps <- FALSE
-        mid_start <- mid_local[which.min(w_m_errs),]
-      } else {
-        mid_start <- mid_local[as.numeric(selected_value),]
+        new_mid_start <- names(which.min(w_m_errs))
       }
     } else {
-      mid_start <- mid_local[which.min(w_m_errs),]
+      new_mid_start <- names(which.min(w_m_errs))
     }
-    r_fin <- test_mid[[which.min(w_m_errs)]]$r
+    mid_start <- mid_local[new_mid_start,]
+    r_fin <- test_mid[[new_mid_start]]$r
   }
+
   # ensure once more that sum=100 and result is given in %
   mid_fin <- 100*unlist(mid_start)/sum(mid_start)
   attr(mid_fin, "err") <- min(sapply(test_mid,function(x){x$err}))
