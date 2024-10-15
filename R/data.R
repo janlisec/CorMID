@@ -28,3 +28,9 @@
 #' @format A list of 36 example metabolites.
 #' @source Calculated using the internal CorMID function `get_idx_mat`.
 "precalc_idx"
+
+#' @title The known fragments and their relative position to \code{[M+H]}.
+#' @docType data
+#' @format A named vector of the currently evaluated fragments.
+#' @source Calculated using the internal CorMID function `get_idx_mat`.
+"known_frags"

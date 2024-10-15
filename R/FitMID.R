@@ -14,7 +14,7 @@ FitMID <- function(md=NULL, td=NULL, r=NULL, mid_fix=NULL, prec=0.01, trace_step
 
   # potential parameters
   step_increment = 0.5 # by how much is step reduced every time d2=d1*step_increment
-  known_frags <- unlist(list("M+H"=0,"M+"=-1,"M-H"=-2,"M+H2O-CH4"=+2))
+  known_frags <- CorMID::known_frags
   if (prod(dim(r))>1 && all(r[1,]==0) & all(r[2,]==1)) limits <- NULL else limits <- r
 
   # default return value
@@ -47,6 +47,12 @@ FitMID <- function(md=NULL, td=NULL, r=NULL, mid_fix=NULL, prec=0.01, trace_step
   while (min(mid_steps)>prec) mid_steps <- c(mid_steps, mid_steps[length(mid_steps)]*step_increment)
 
   # optimize isotopologue distribution
+  # JL$$ prepare as much data as possible for error calculation function
+  frag <- as.numeric(substr(names(md),2,4))
+  n_md <- length(md)
+  L0 <- sapply(colnames(r), function(x) { rep(0, abs(min(frag)-known_frags[x])) }, simplify = FALSE)
+  # $$JL
+
   for (dst in mid_steps) {
     mid_local <- poss_local(vec=mid_start, d=dst, prec = prec/10, limits=NULL, length.out=3)
     if (trace_steps) {
@@ -54,13 +60,13 @@ FitMID <- function(md=NULL, td=NULL, r=NULL, mid_fix=NULL, prec=0.01, trace_step
       cat(paste("\nUsing stepwidth for MID:", round(dst,5)))
     }
     test_mid <- apply(as.data.frame(mid_local), 1, function (x) {
-      pre_mid <- apply(td*unlist(x),2,sum)
+      pre_mid <- colSums(td*unlist(x))
       if (r_fixed) {
         r_steps <- 0.5
       } else {
         r_steps <- c(0.25,0.1,0.05,0.02,0.01)
       }
-      r_start <- apply(r,2,stats::median)
+      r_start <- apply(r, 2, stats::median)
       d <- 0.5
       # optimize fragment ratios
       for (rst in r_steps) {
@@ -70,7 +76,7 @@ FitMID <- function(md=NULL, td=NULL, r=NULL, mid_fix=NULL, prec=0.01, trace_step
           d <- rst
           # test fragment ratio distributions
           test_r <- apply(r_local, 1, function (y) {
-            calc_mid_error(md=md, reconstructed_mid=pre_mid, best_r=y)
+            calc_mid_error(md=md, reconstructed_mid=pre_mid, best_r=y, frag=frag, n_md=n_md, L0=L0)
           })
           w_r_errs <- weight_errors(rMpH = r_local[,"M+H"], errs = test_r, penalize = penalize)
           r_start <- r_local[which.min(w_r_errs),,drop=F]
@@ -80,7 +86,7 @@ FitMID <- function(md=NULL, td=NULL, r=NULL, mid_fix=NULL, prec=0.01, trace_step
         }
       }
       best_r <- r_start
-      mid_err <- calc_mid_error(md=md, reconstructed_mid=pre_mid, best_r=best_r)
+      mid_err <- calc_mid_error(md=md, reconstructed_mid=pre_mid, best_r=best_r, frag=frag, n_md=n_md, L0=L0)
       return(list("err"=mid_err, "r"=round(best_r,4)))
     })
     # compute weighted errors (penalty for solutions with low M+H ion, which is unlikely)

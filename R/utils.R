@@ -99,14 +99,18 @@ verify_suggested <- function(pkg) {
 #' @param md Normalized measured intensities
 #' @param reconstructed_mid A reconstructed MID based on a true MID and a theoretical distribution.
 #' @param best_r A named numeric vector of fragment ratios.
+#' @param frag as.numeric(substr(names(md),2,4)).
+#' @param n_md length(md).
+#' @param L0 sapply(names(best_r), function(x) { rep(0, abs(min(frag)-known_frags[x])) }, simplify = FALSE).
 #' @return A numeric vector of length(x).
 #' @keywords internal
 #' @noRd
-calc_mid_error <- function(md=NULL, reconstructed_mid=NULL, best_r=NULL) {
+# $$ keep this version for legacy reasons
+calc_mid_error_old <- function(md=NULL, reconstructed_mid=NULL, best_r=NULL) {
   known_frags <- unlist(list("M+H"=0,"M+"=-1,"M-H"=-2,"M+H2O-CH4"=+2))
   length_md <- length(md)
   T0 <- rep(0, max(known_frags))
-  frag <- as.numeric(gsub("M","",names(md)))
+  frag <- as.numeric(gsub("M", "", names(md)))
   out <- rep(0, length_md)
   names(out) <- names(md)
   for (i in 1:length(best_r)) {
@@ -121,7 +125,41 @@ calc_mid_error <- function(md=NULL, reconstructed_mid=NULL, best_r=NULL) {
   # $$ the following line led to serious problems and was outcommented on 2022-03-16 by JL
   #if (sum(out)!=1 & sum(out)!=0) out <- out/sum(out)
   mid_err <- sqrt(sum((out-md)^2))
+  #fnc_counter <<- fnc_counter+1
   return(mid_err)
+}
+
+# calc_mid_error2 <- function(md=NULL, reconstructed_mid=NULL, best_r=NULL) {
+#   known_frags <- CorMID::known_frags
+#   # limit to reasonable fragments
+#   best_r <- best_r[best_r>0]
+#   # set trailing zeros
+#   T0 <- rep(0, max(known_frags))
+#   frag <- as.numeric(substr(names(md),2,4))
+#     out <- matrix(0, nrow=length(best_r), ncol=length(md), dimnames = list(names(best_r), names(md)))
+#     L0 <- abs(min(frag)-known_frags[names(best_r)])
+#     for (i in 1:length(best_r)) {
+#       out[i,] <- c(rep(0, L0[i]), reconstructed_mid*best_r[i], T0)[1:length(md)]
+#     }
+#   mid_err <- sqrt(sum((colSums(out)-md)^2))
+#   return(mid_err)
+# }
+
+calc_mid_error <- function(md=NULL, reconstructed_mid=NULL, best_r=NULL, frag=NULL, n_md=NULL, L0=NULL) {
+  # this is the fastest version I could find
+  if (length(best_r)==4) {
+    out <- c(L0[["M-H"]], reconstructed_mid*best_r["M-H"], c(0,0))[1:n_md] +
+      c(L0[["M+"]], reconstructed_mid*best_r["M+"], c(0,0))[1:n_md] +
+      c(L0[["M+H"]], reconstructed_mid*best_r["M+H"], c(0,0))[1:n_md] +
+      c(L0[["M+H2O-CH4"]], reconstructed_mid*best_r["M+H2O-CH4"], c(0,0))[1:n_md]
+  } else if (length(best_r)==1) {
+    out <- c(L0[[names(best_r)]], reconstructed_mid*best_r, c(0,0))[1:n_md]
+  } else {
+    out <- rowSums(sapply(names(best_r), function(x) {
+      c(L0[[x]], reconstructed_mid*best_r[x], c(0,0))[1:n_md]
+    }))
+  }
+  return(sqrt(sum((out-md)^2)))
 }
 
 #' @title weight_errors.
