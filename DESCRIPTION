@@ -17,7 +17,7 @@ Description: In metabolic flux experiments tracer molecules (often glucose
 License: GPL (>= 3)
 URL: https://github.com/janlisec/CorMID
 Depends: 
-    R (>= 3.50)
+    R (>= 3.5.0)
 Imports:
 Suggests: 
     knitr,
