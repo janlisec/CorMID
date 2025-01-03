@@ -36,5 +36,5 @@ CountChemicalElements("[13]CC2H8Cl+")
 CountChemicalElements("[13]CC2H8Cl+", ele=c("Cl","O","H"))
 
 # apply on a vector of formulas using sapply
-sapply(c("C3H7Cl", "[13]CC2H8Cl+"), CorMID::CountChemicalElements, ele=c("Cl","O","H"))
+sapply(c("C3H7Cl", "[13]CC2H8Cl+"), CountChemicalElements, ele=c("Cl","O","H"))
 }

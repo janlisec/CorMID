@@ -11,10 +11,9 @@ testthat::test_that(
     testthat::expect_true(is.numeric(out_old))
     testthat::expect_equal(out_old, 0.5740867)
     frag <- as.numeric(substr(names(md),2,4))
+    L0 <- sapply(names(best_r), function(x) { rep(0, abs(min(frag)-known_frags[x])) }, simplify = FALSE)
     out_new <- CorMID:::calc_mid_error(
-      md = md, reconstructed_mid = rMID[1:6], best_r = best_r,
-      frag = frag, n_md = length(md),
-      L0 = sapply(names(best_r), function(x) { rep(0, abs(min(frag)-known_frags[x])) }, simplify = FALSE)
+      md = md, reconstructed_mid = rMID[1:6], best_r = best_r, n_md = length(md), L0 = L0
     )
     testthat::expect_equal(out_old, out_new)
   }

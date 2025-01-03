@@ -46,7 +46,7 @@ CalcTheoreticalMDV(fml = fml, nmz = 4)
 
 # limit to a smaller number of biological carbon (i.e. if compounds are silylated)
 CalcTheoreticalMDV(fml = fml, nmz = 4, nbio = 2)
-CalcTheoreticalMDV(fml = fml, nmz = 4, nbio = 2, algo="Rdisop")
+#CalcTheoreticalMDV(fml = fml, nmz = 4, nbio = 2, algo="Rdisop")
 
 # from Vignette
 fml <- "C21Si5"

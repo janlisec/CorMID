@@ -6,7 +6,7 @@
 #'    However, it is approx. 7-fold slower than `Rdisop`. Where processing speed
 #'    is of importance, please use the `algo` parameter of the `CorMID` function.
 #' @param fml Chemical formula.
-#' @param resolution Currently fixed to 20000 (might be made changable in the future).
+#' @param resolution Currently fixed to 20000 (might be made changeable in the future).
 #' @param cutoff Discard peaks below this threshold (relative to highest peak).
 #' @param isotopes Specify explicitly or keep NULL to use internally provided list.
 #' @param prec Rounding precision of returned mz and int values.
@@ -34,10 +34,12 @@
 getMID <- function(fml, resolution = 20000, cutoff = 0.0001, isotopes = NULL, prec = 4, step = 0) {
   #print(fml)
   if (is.null(isotopes)) isotopes <- CorMID::isotopes
+  if (fml=="") return(data.frame("mz"=12, "int"=1))
   #browser()
   precalc_idx <- CorMID::precalc_idx
   # count elements
   fml_cce <- cce(fml)[[1]]
+
   # get element individual distributions and limit to cutoff
   ele_mzint <- lapply(names(fml_cce), function(ele) {
     idx <- which(isotopes$element == ele & isotopes$abundance > cutoff)
@@ -55,11 +57,15 @@ getMID <- function(fml, resolution = 20000, cutoff = 0.0001, isotopes = NULL, pr
   if (step==1) return(ele_mzint)
 
   # combine elements
-  idx <- expand.grid(lapply(ele_mzint, function(x) { 1:nrow(x) }))
-  df_jl <- data.frame(
-    "mz" = rowSums(sapply(1:length(ele_mzint), function(i) { ele_mzint[[i]][idx[, i], 1] })),
-    "int" = apply(sapply(1:length(ele_mzint), function(i) { ele_mzint[[i]][idx[, i], 2] }), 1, prod)
-  )
+  if (length(ele_mzint)==1) {
+    df_jl <- ele_mzint[[1]]
+  } else {
+    idx <- expand.grid(lapply(ele_mzint, function(x) { 1:nrow(x) }))
+    df_jl <- data.frame(
+      "mz" = rowSums(sapply(1:length(ele_mzint), function(i) { ele_mzint[[i]][idx[, i], 1] })),
+      "int" = apply(sapply(1:length(ele_mzint), function(i) { ele_mzint[[i]][idx[, i], 2] }), 1, prod)
+    )
+  }
   if (step==2) return(df_jl)
 
   # reduce the peaks according to approx. 20k resolution
@@ -67,12 +73,12 @@ getMID <- function(fml, resolution = 20000, cutoff = 0.0001, isotopes = NULL, pr
     c(stats::weighted.mean(x = x[, 1], w = x[, 2]), sum(x[, 2]))
   }, USE.NAMES = FALSE))
   dimnames(df_jl) <- list(NULL, c("mz","int"))
-
   if (step==3) return(df_jl)
+
   #df_jl[, 2] <- df_jl[, 2] / max(df_jl[, 2])
   # round mz and int as specified by prec'
   if (is.finite(prec[1])) df_jl <- round(df_jl, prec[1])
-  return(df_jl[df_jl[, 2] > cutoff, ])
+  return(df_jl[df_jl[, 2] > cutoff, , drop=FALSE])
 }
 
 # getMID2 <- function(fml, resolution = 20000, cutoff = 0.0001, isotopes = NULL, prec = 4, step = 0) {

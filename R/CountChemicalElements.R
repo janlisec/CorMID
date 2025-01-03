@@ -20,7 +20,7 @@
 #'CountChemicalElements("[13]CC2H8Cl+", ele=c("Cl","O","H"))
 #'
 #'# apply on a vector of formulas using sapply
-#'sapply(c("C3H7Cl", "[13]CC2H8Cl+"), CorMID::CountChemicalElements, ele=c("Cl","O","H"))
+#'sapply(c("C3H7Cl", "[13]CC2H8Cl+"), CountChemicalElements, ele=c("Cl","O","H"))
 #'@export
 CountChemicalElements <- function(x = NULL, ele = NULL) {
     # ensure character and length=1
@@ -30,9 +30,11 @@ CountChemicalElements <- function(x = NULL, ele = NULL) {
     x <- gsub("[[].+[]]","",x)
     # all elements start with a LETTER...
     p <- gregexpr("[[:upper:]]", x)[[1]]
+    p_end <- c(p[-1]-1, nchar(x))
     # split initial string at the large letter positions
     out <- sapply(1:length(p), function(i) {
-        substr(x, p[i], ifelse(i == length(p), nchar(x), p[i + 1] - 1))
+        #substr(x, p[i], ifelse(i == length(p), nchar(x), p[i + 1] - 1))
+        substr(x, p[i], p_end[i])
     })
     # remove all non letter/digit (e.g. further brackets, charges...)
     out <- gsub("[^[:alnum:]]", "", out)

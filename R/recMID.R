@@ -10,7 +10,10 @@
 #'@param fml A compound formula.
 #'@param cutoff Remove values below this threshold from output vector.
 #'@param algo The algorithm used to estimate the isotopic distribution of a chemical formula.
-#'@return A reconstructed MID.
+#'@return A reconstructed MID, i.e. the relative intensity values that would be
+#'  measured for the specified molecule `fml` with respect to parameters``mid`
+#'  and `r`. The default values for `mid` and `r` are set to reflect natural
+#'  abundance and no fragmentation.
 #'@export
 #'@examples
 #'fml <- "C9H20O3Si2"
@@ -23,15 +26,19 @@
 #'\donttest{
 #'CorMID::CorMID(int = rMID, fml=fml, prec=0.001, r=unlist(r), trace_steps = TRUE)
 #'}
-recMID <- function(mid=NULL, r=list("M+H"=1), fml=NULL, cutoff=0.001, algo = c("CorMID", "Rdisop")) {
+recMID <- function(mid=c(1, 0, 0), r=list("M+H"=1), fml=NULL, cutoff=0.001, algo = c("CorMID", "Rdisop")) {
   algo <- match.arg(algo)
   if (algo=="Rdisop") verify_suggested("Rdisop")
   # ensure that sum(mid)==1
   mid <- mid/sum(mid)
   nbio <- ifelse(is.null(attr(fml, "nbio")), length(mid)-1, attr(fml, "nbio"))
-  nmz <- ifelse(is.null(attr(fml, "nmz")), length(mid)+3, attr(fml, "nmz"))
+  #add_nmz <- diff(range(unlist(r)))
+  add_nmz <- diff(range(CorMID::known_frags))
+  nmz <- ifelse(is.null(attr(fml, "nmz")), length(mid)+add_nmz, attr(fml, "nmz"))
   td <- CalcTheoreticalMDV(fml=fml, nbio = nbio, nmz = nmz, algo = algo)
   n <- ncol(td)
+  # ensure that elngth of mid matches that of td
+  if (length(mid)<nrow(td)) mid <- c(mid, rep(0, nrow(td)-length(mid)))
   s <- colSums(td*mid)
   # ensure that only (and all) specified r are available
   frag <- unlist(list("M-H"=0,"M+"=0,"M+H"=0,"M+H2O-CH4"=0))

@@ -16,7 +16,7 @@ getMID(
 \arguments{
 \item{fml}{Chemical formula.}
 
-\item{resolution}{Currently fixed to 20000 (might be made changable in the future).}
+\item{resolution}{Currently fixed to 20000 (might be made changeable in the future).}
 
 \item{cutoff}{Discard peaks below this threshold (relative to highest peak).}
 

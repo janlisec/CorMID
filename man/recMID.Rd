@@ -6,7 +6,7 @@
 \title{recMID.}
 \usage{
 recMID(
-  mid = NULL,
+  mid = c(1, 0, 0),
   r = list(`M+H` = 1),
   fml = NULL,
   cutoff = 0.001,
@@ -31,7 +31,10 @@ recMID(
 \item{...}{Further plotting parameters.}
 }
 \value{
-A reconstructed MID.
+A reconstructed MID, i.e. the relative intensity values that would be
+ measured for the specified molecule `fml` with respect to parameters``mid`
+ and `r`. The default values for `mid` and `r` are set to reflect natural
+ abundance and no fragmentation.
 }
 \description{
 \code{recMID} will reconstruct a measured GC-APCI-MS spectrum

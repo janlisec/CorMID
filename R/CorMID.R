@@ -87,23 +87,12 @@ CorMID <- function(int = NULL, fml = "", r = NULL, penalize = 7, mid_fix = NULL,
   # potential parameters
   # specify known fragments; I use this named vector to check in the fitting function where a certain fragment starts,
   # to make the function really flexible this would need to be user definable potentially in a data.frame together with parameter 'r'
-  known_frags <- unlist(list("M+H" = 0, "M+" = -1, "M-H" = -2, "M+H2O-CH4" = +2))
+  known_frags <- CorMID::known_frags
   # this is the maximum number of carbons computable (otherwise matrices get to big)
   lim_nbio <- min(12, attr(fml, "nmz"))
 
   algo <- match.arg(algo)
   if (algo=="Rdisop") verify_suggested("Rdisop")
-
-  # QC for fml
-  # we need to know the biological carbon within fml and specify nmz based on our known frags
-  if (is.null(attr(fml, "nbio"))) {
-    cce <- CountChemicalElements(x = fml, ele = c("C", "Si"))
-    attr(fml, "nbio") <- unname(cce["C"] - 3 * cce["Si"])
-  }
-  attr(fml, "nbio") <- min(lim_nbio, attr(fml, "nbio"))
-  attr(fml, "nmz") <- attr(fml, "nbio") + diff(range(known_frags))
-  # compute theoretical distribution matrix from formula (assuming 1% 13C abundance)
-  td <- CalcTheoreticalMDV(fml = fml, nbio = attr(fml, "nbio"), nmz = attr(fml, "nmz"), algo = algo)
 
   # QC for r
   # if r is unspecified
@@ -114,6 +103,25 @@ CorMID <- function(int = NULL, fml = "", r = NULL, penalize = 7, mid_fix = NULL,
   if (is.null(nrow(r)) || nrow(r) == 1) {
     r <- r / sum(r) # ensure that sum(r)==1
     r <- matrix(c(r, r), byrow = T, nrow = 2, dimnames = list(c("low", "high"), names(r)))
+  }
+  #known_frags <- known_frags[names(known_frags) %in% colnames(r)]
+
+  # QC for fml
+  # we need to know the biological carbon within fml and specify nmz based on our known frags (or specified frags from r)
+  if (is.null(attr(fml, "nbio"))) {
+    cce <- CountChemicalElements(x = fml, ele = c("C", "Si"))
+    attr(fml, "nbio") <- unname(cce["C"] - 3 * cce["Si"])
+  }
+  attr(fml, "nbio") <- min(lim_nbio, attr(fml, "nbio"))
+  if (!is.null(mid_fix)) { attr(fml, "nbio") <- length(mid_fix)-1 }
+  attr(fml, "nmz") <- attr(fml, "nbio") + diff(range(known_frags))
+  # compute theoretical distribution matrix from formula (assuming 1% 13C abundance)
+  td <- CalcTheoreticalMDV(fml = fml, nbio = attr(fml, "nbio"), nmz = attr(fml, "nmz"), algo = algo)
+
+  # QC for mid_fix
+  if (!is.null(mid_fix)) {
+    names(mid_fix) <- rownames(td)
+    mid_fix <- mid_fix / sum(mid_fix)
   }
 
   # QC for int and frag
@@ -132,16 +140,11 @@ CorMID <- function(int = NULL, fml = "", r = NULL, penalize = 7, mid_fix = NULL,
       names(int) <- paste0("M", formatC(x = tmp, format = "d", flag = "+"))
     }
   }
-  if (!all(names(int) %in% names(rawMID))) stop("rawMID specified without names indicating position relative to [M+H].")
-  rawMID[names(int)] <- int
-
-  # QC for mid_fix
-  if (!is.null(mid_fix)) {
-    if (length(mid_fix) > nrow(td)) mid_fix <- mid_fix[1:nrow(td)]
-    if (length(mid_fix) < nrow(td)) warning("length(mid_fix)<nrow(td)")
-    names(mid_fix) <- rownames(td)
-    mid_fix <- mid_fix / sum(mid_fix)
+  if (!all(names(int) %in% names(rawMID))) {
+    #browser()
+    #warning("rawMID specified without names indicating position relative to [M+H].")
   }
+  rawMID[names(int)[names(int) %in% names(rawMID)]] <- int[names(int) %in% names(rawMID)]
 
   # fitted return value
   out <- FitMID(md = rawMID, td = td, r = r, mid_fix = mid_fix, prec = prec, trace_steps = trace_steps, penalize = penalize)

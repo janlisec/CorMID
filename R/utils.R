@@ -1,11 +1,11 @@
 #' @title poss_local.
 #' @description \code{poss_local} will compute a matrix of possibilities.
 #' @details Within the approximation process we need to check various hypotheses
-#'  of MID and r combinations. A non-redundant set of posible combinations can
+#'  of MID and r combinations. A non-redundant set of possible combinations can
 #'  be computed with this \code{poss_local}.
 #' @param vec The starting vector sum(vec) should be 1.
 #' @param d The maximum allowed deviation for each element in vec.
-#' @param prec recision of allowed errors.
+#' @param prec Precision of allowed errors.
 #' @param limits A 2-row matrix with lower and upper boundaries for the result vectors.
 #' @param ... Passed to function \code{seq}. Either by or length.out (see examples in test-poss_local.R).
 #' @return A matrix with rowSums\~1 and within the limits defined by vec and d.
@@ -61,11 +61,33 @@ poss_local <- function(vec=NULL, d=NULL, prec=0.001, limits=NULL, ...) {
 #' @examples
 #' # count every element
 #' cce("C3H7Cl1")
-#' cce(c("C3H7Cl1", "C5H12O6", "S10", "C1H2N3O4P5S6"))
+#' cce(c("C3H7Cl1", "C5H12O6", "S10", "C1H2N3O4P5S6", "CHO", "CH2Cl2OP3K"))
 #'
+#' \donttest{
+#' x <- c("C3H7Cl1", "C5H12O6", "S10", "C1H2N3O4P5S6", "CHO", "CH2Cl2OP3K")
+#' bench::mark(
+#'   "cce" = cce(x),
+#'   "old" = lapply(x, CountChemicalElements)
+#' )
+#' bench::mark(
+#'   "cce" = cce(x[1:4]),
+#'   "old" = lapply(x[1:4], CountChemicalElements)
+#' )
+#' }
 #' @keywords internal
 #' @noRd
 cce <- function(x) {
+  # check for missing numeric values (omitted n=1 elements)...
+  test0 <- grepl("[[:upper:]][[:upper:]]", paste0(x,"A"))
+  # ...and ensure that every element is followed by a number
+  if (any(test0)) {
+    x[test0] <- sapply(x[test0], function(fml) {
+      idx <- rev(setdiff(gregexpr("[[:upper:]]", fml)[[1]], gregexpr("[[:upper:]][^[:upper:]]", fml)[[1]]))
+      for (i in idx) fml <- sub(paste0('(?<=.{', i, '})'), '1', fml, perl=TRUE)
+      fml
+    })
+  }
+  # given that the formulas are in standard format, this is the fastest way to count
   e_name <- strsplit(x, "[[:digit:]]+")
   e_numb <- strsplit(x, "[[:alpha:]]+")
   # strsplit(x, "[ABCDEFGHIJKLMNOPQRSTUVWXYZ]")
@@ -94,20 +116,25 @@ verify_suggested <- function(pkg) {
   invisible(NULL)
 }
 
-#' @title calc_mid_error.
-#' @description \code{calc_mid_error} will compute the error of a theoretical and a estimated mid.
+#' @title calc_mid_error_old.
+#' @description \code{calc_mid_error_old} will compute the error of a theoretical and a estimated mid.
 #' @param md Normalized measured intensities
 #' @param reconstructed_mid A reconstructed MID based on a true MID and a theoretical distribution.
 #' @param best_r A named numeric vector of fragment ratios.
-#' @param frag as.numeric(substr(names(md),2,4)).
-#' @param n_md length(md).
-#' @param L0 sapply(names(best_r), function(x) { rep(0, abs(min(frag)-known_frags[x])) }, simplify = FALSE).
-#' @return A numeric vector of length(x).
+#' @return A numeric vector of length=1.
 #' @keywords internal
 #' @noRd
+#' @examples
+#' fml <- "C9H20O3Si2"
+#' td <- CalcTheoreticalMDV(fml, nbio = 3, nmz = 5)
+#' mid <- c(0.9, 0, 0, 0.1)
+#' r <- unlist(list("M+H" = 0.8, "M+H2O-CH4" = 0.2))
+#' int <- CorMID::recMID(mid = mid, r = r, fml = fml)
+#' calc_mid_error_old(md = int, reconstructed_mid = colSums(td*mid), best_r = r)
+#'
 # $$ keep this version for legacy reasons
 calc_mid_error_old <- function(md=NULL, reconstructed_mid=NULL, best_r=NULL) {
-  known_frags <- unlist(list("M+H"=0,"M+"=-1,"M-H"=-2,"M+H2O-CH4"=+2))
+  known_frags <- CorMID::known_frags
   length_md <- length(md)
   T0 <- rep(0, max(known_frags))
   frag <- as.numeric(gsub("M", "", names(md)))
@@ -129,24 +156,18 @@ calc_mid_error_old <- function(md=NULL, reconstructed_mid=NULL, best_r=NULL) {
   return(mid_err)
 }
 
-# calc_mid_error2 <- function(md=NULL, reconstructed_mid=NULL, best_r=NULL) {
-#   known_frags <- CorMID::known_frags
-#   # limit to reasonable fragments
-#   best_r <- best_r[best_r>0]
-#   # set trailing zeros
-#   T0 <- rep(0, max(known_frags))
-#   frag <- as.numeric(substr(names(md),2,4))
-#     out <- matrix(0, nrow=length(best_r), ncol=length(md), dimnames = list(names(best_r), names(md)))
-#     L0 <- abs(min(frag)-known_frags[names(best_r)])
-#     for (i in 1:length(best_r)) {
-#       out[i,] <- c(rep(0, L0[i]), reconstructed_mid*best_r[i], T0)[1:length(md)]
-#     }
-#   mid_err <- sqrt(sum((colSums(out)-md)^2))
-#   return(mid_err)
-# }
-
-calc_mid_error <- function(md=NULL, reconstructed_mid=NULL, best_r=NULL, frag=NULL, n_md=NULL, L0=NULL) {
-  # this is the fastest version I could find
+#' @title calc_mid_error.
+#' @description \code{calc_mid_error} will compute the error of a theoretical and a estimated mid.
+#' @param md Normalized measured intensities
+#' @param reconstructed_mid A reconstructed MID based on a true MID and a theoretical distribution.
+#' @param best_r A named numeric vector of fragment ratios.
+#' @param n_md length(md).
+#' @param L0 sapply(names(best_r), function(x) { rep(0, abs(min(frag)-known_frags[x])) }, simplify = FALSE).
+#' @return A numeric vector of length=1.
+#' @keywords internal
+#' @noRd
+calc_mid_error <- function(md=NULL, reconstructed_mid=NULL, best_r=NULL, n_md=NULL, L0=NULL) {
+  # this is the fastest version I could program in pure R
   if (length(best_r)==4) {
     out <- c(L0[["M-H"]], reconstructed_mid*best_r["M-H"], c(0,0))[1:n_md] +
       c(L0[["M+"]], reconstructed_mid*best_r["M+"], c(0,0))[1:n_md] +
