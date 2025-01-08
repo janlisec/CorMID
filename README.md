@@ -45,11 +45,11 @@ or install the version from
 **CorMID** is supposed to disentangle a complex MID. Complex means that
 the ion intensities of the isotopes are influenced by natural abundance,
 artificial labeling (e.g. by a <sup>13</sup>C-Glucose tracer) and mass
-spectrometry artifacts (i.e. several potential adducts).
+spectrometry artifacts (i.e. several potential adducts/fragments).
 
-You can create and visualize such a complex mass spectrum by providing a
-*chemical formula*, the *true MID* and an *adduct distribution* like
-follows:
+You can create and visualize such a complex mass spectrum, *i.e.* a
+vector of measured ion intensities, by providing a *chemical formula*,
+the *true MID* and an *adduct distribution* like follows:
 
 ``` r
 # a chemical formula, here: Lactic acid 2 TMS
@@ -58,7 +58,7 @@ fml <- "C9H22O3Si2"
 # the true mass isotopologue distribution, here: 10% U13C enriched
 mid <- c(0.9, 0, 0, 0.1)
 
-# adduct distribution, here: 3 different APCI adducts formed
+# adduct distribution, here: 3 different APCI adducts are formed
 r <- list("M+H" = 0.8, "M-H" = 0.1, "M+H2O-CH4" = 0.1)
 
 # reconstruct the measured intensity vector
@@ -81,9 +81,15 @@ text(x = 3, y = 0.4, labels = "[M+H]+", pos=2)
 
 ![](man/figures/README-exmpl1_plot-1.png)<!-- -->
 
-Assuming that you have measured these intensities in your experiment,
-the main function of **CorMID** can estimate the underlying *MID* and
-*r* for you:
+Instead of labeling the mass spectrum with actual ion masses, **CorMID**
+unifies the annotation for all molecules with respect to the largest
+adduct, in APCI usually the \[M+H\]+, which is labeled as M+0. Other
+peaks are labeled indicating the approximate mass difference to \[M+H\]+
+in Dalton as M+1, M+2, etc.
+
+Assuming that you have measured the above intensities in your
+experiment, the main function of **CorMID** can estimate the underlying
+*MID* and *r* for you:
 
 ``` r
 # disentangle the adduct ratios and true isotopologue distribution (enrichment) from the above test data
@@ -92,12 +98,12 @@ print(out)
 #> [class] 'CorMID'
 #> MID [%] (estimated)
 #>     M0    M1    M2    M3
-#>  89.06 00.00 00.78 10.16
+#>  88.28 00.00 01.56 10.16
 #> [attr] 'r' (estimated)
 #>   M+H   M+   M-H   M+H2O-CH4
 #>  0.81 0.00  0.10        0.09
 #> [attr] 'err'
-#> 0.003167
+#> 0.003494
 ```
 
 Please note: no information regarding the true labeling status and the
@@ -108,10 +114,18 @@ This allows you to perform the correction for natural abundance and
 technical artifacts in a single step and extract the relevant labeling
 status for flux analysis or other statistical evaluations.
 
+However, in a real world experiment it would be a smart strategy to
+process non-labeled control samples setting a fixed mid, *i.e.* c(1, 0,
+0, 0) for a molecule with 3 biological carbon atoms like lactic acid, to
+identify the specific adducts *r* formed on your device for this
+molecule. In the next step you can use this information to fix *r* while
+processing your labeled samples which will improve the detection of the
+correct labeling status *MID*.
+
 ## Detailed documentation
 
 You might either read the
 [Vignette](https://cran.r-project.org/package=CorMID/vignettes/CorMID.html)
 describing the package functions in detail or read the
-[publication](https://doi.org/10.3390/metabo12050408) which shows a
-evaluation of the performance of **CorMID** on real data sets.
+[publication](https://doi.org/10.3390/metabo12050408) which shows an
+evaluation of the performance of **CorMID** on several real data sets.

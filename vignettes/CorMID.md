@@ -7,16 +7,12 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
-```
+
 
 Please load the `CorMID` package before running the examples within this document.
 
-```{r setup}
+
+``` r
 library(CorMID)
 ```
 
@@ -48,53 +44,89 @@ Let us look at an example: C~2~H~6~O would be a sum formula, with ethanol (CH~3~
 
 Within the main function `CorMID` we make use of several helper functions, *i.e.* `CountChemicalElements` and `CalcTheoreticalMDV`. The first one simply counts the digit following a certain letter in a chemical sum formula. Here, we use it to determine the number of carbon, silicon and sulfur atoms (neglecting nitrogen, as the ^15^N isotope is of low abundance). As the anticipated user will probably work on derivatized compounds, two additional letters were included to the chemical alphabet, **T** for TMS and **M** for a MEOX substitution. In consequence for compound Glucose (5 TMS, 1 MEOX) we would count:
 
-```{r CountChemicalElements}
+
+``` r
 fml <- "C6H12O6T5M1"
 CorMID::CountChemicalElements(x = fml)
+#>  C  H  O  T  M 
+#>  6 12  6  5  1
 ```
 
 and receive as output a named vector for all present elements. Specifying parameter *ele*, we can also count the occurence of a selection of elements.
 
-```{r CountChemicalElements2}
+
+``` r
 CorMID::CountChemicalElements(x = fml, ele = c("C", "Si", "T", "Cl"))
+#>  C Si  T Cl 
+#>  6  0  5  0
 ```
 
 The elements with a significant amount of natural occurring isotopes are relevant to calculate the theoretical mass distribution vector (or rather matrix respectively) of the compound. In the above example, the relevant elements are effectively carbon and silicon. 
 
-```{r, echo=FALSE, ShowNaturalIsotopeAbundance}
-structure(list(
-  element = c("H", "H", "C", "C", "O", "O", "O", "Si", "Si", "Si"), 
-  isotope = c("1H", "2H", "12C", "13C", "16O", "17O", "18O", "28Si", "29Si", "30Si"), 
-  mass = c(1.0078, 2.0141, 12, 13.0034, 15.9949, 16.9991, 17.9992, 27.9769, 28.9765, 29.9738), 
-  `abundance [%]` = c(99.99, 0.01, 98.93, 1.07, 99.76, 0.04, 0.21, 92.22, 4.69, 3.09), 
-  `abund > 1%` = c(TRUE, FALSE, TRUE, TRUE, TRUE, FALSE, FALSE, TRUE, TRUE, TRUE)
-), row.names = c(NA, -10L), class = "data.frame")
+
+```
+#>    element isotope    mass abundance [%] abund > 1%
+#> 1        H      1H  1.0078         99.99       TRUE
+#> 2        H      2H  2.0141          0.01      FALSE
+#> 3        C     12C 12.0000         98.93       TRUE
+#> 4        C     13C 13.0034          1.07       TRUE
+#> 5        O     16O 15.9949         99.76       TRUE
+#> 6        O     17O 16.9991          0.04      FALSE
+#> 7        O     18O 17.9992          0.21      FALSE
+#> 8       Si    28Si 27.9769         92.22       TRUE
+#> 9       Si    29Si 28.9765          4.69       TRUE
+#> 10      Si    30Si 29.9738          3.09       TRUE
 ```
 
 As we have 5 TMS groups, we need to consider in total 21 carbon (6 of biological origin and 15 in TMS groups) and 5 silicon atoms in our calculations.
 
-```{r CalcTheoreticalMDV1}
+
+``` r
 fml <- "C21Si5"
 td <- CorMID::CalcTheoreticalMDV(fml = fml)
 round(td, 4)
+#>       M+0    M+1    M+2    M+3    M+4    M+5    M+6
+#> M0 0.5324 0.2561 0.1468 0.0464 0.0144 0.0032 0.0006
+#> M1 0.0000 0.5385 0.2532 0.1457 0.0454 0.0141 0.0031
+#> M2 0.0000 0.0000 0.5459 0.2508 0.1450 0.0445 0.0138
+#> M3 0.0000 0.0000 0.0000 0.5593 0.2509 0.1458 0.0440
+#> M4 0.0000 0.0000 0.0000 0.0000 0.5903 0.2585 0.1512
+#> M5 0.0000 0.0000 0.0000 0.0000 0.0000 0.7007 0.2993
+#> M6 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 1.0000
 ```
 
 The first row of the matrix (M0) gives the relative amounts of all potential isotopes for C~21~Si~5~ assuming natural abundance conditions. The second row (M1) shows the relative amounts for isotopologue M1 (containing at least one ^13^C at any position). The final row (M6) shows the relative amounts when all biological carbon atoms are assumed to be ^13^C. The amount of biological carbon is estimated based on the amount of Si within the function (21 - 5 x 3 = 6). This might be overwritten by function parameters specifying the number of C of biological origin *nbio* and the number of measured ion signals above the detection limit *nmz*:
 
-```{r CalcTheoreticalMDV2}
+
+``` r
 round(CorMID::CalcTheoreticalMDV(fml = fml, nbio = 21, nmz = 21)[-(5:19), -(5:19)], 4)
+#>        M+0    M+1    M+2    M+3   M+19   M+20   M+21
+#> M0  0.5324 0.2561 0.1468 0.0464 0.0000 0.0000 0.0000
+#> M1  0.0000 0.5381 0.2531 0.1456 0.0000 0.0000 0.0000
+#> M2  0.0000 0.0000 0.5439 0.2499 0.0000 0.0000 0.0000
+#> M3  0.0000 0.0000 0.0000 0.5498 0.0000 0.0000 0.0000
+#> M19 0.0000 0.0000 0.0000 0.0000 0.6781 0.1869 0.1350
+#> M20 0.0000 0.0000 0.0000 0.0000 0.0000 0.7906 0.2094
+#> M21 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 1.0000
 ```
 
 Further, the package contains the convenience function `recMID` to reconstruct a measured MID based on a given *corMID,* *r* and sum formula. `recMID` returns an object of the similarly named class to allow easy visualization by a class dependent plot method.
 
-```{r recMID}
+
+``` r
 fml <- "C9H20O3Si2"
 mid <- c(0.9, 0, 0, 0.1)
 r <- list("M+H" = 0.8, "M-H" = 0.1, "M+H2O-CH4" = 0.1)
 rMID <- CorMID::recMID(mid = mid, r = r, fml = fml)
 round(rMID, 4)
+#>    M-2    M-1    M+0    M+1    M+2    M+3    M+4    M+5    M+6 
+#> 0.0689 0.0139 0.5574 0.1203 0.1203 0.0846 0.0183 0.0142 0.0021 
+#> attr(,"class")
+#> [1] "recMID"
 plot(rMID)
 ```
+
+![plot of chunk recMID](figure/recMID-1.png)
 
 The spectrum shown in the above plot would be measured for lactic acid (2 TMS), assuming 10% of the fully labeled isotopologue M3, natural abundance, 10% proton loss and 10% of [M+H]+H~2~O-CH~4~. It is the task of `CorMID` to disentangle this overlay of superimposed MIDs and estimate both, *corMID* and *r*.
 
@@ -110,50 +142,93 @@ The basic idea of the correction is that we measure a superimposed/composite MID
 
 Lets start with an artificial Glucose spectrum where 10% is M6 labeled:
 
-```{r CorMID1}
+
+``` r
 fml <- "C21Si5"
 td1 <- CorMID::CalcTheoreticalMDV(fml = fml, nbio = 6, nmz = 8)
 bMID <- c(0.9, rep(0, 5), 0.1)
 md1 <- apply(td1*bMID, 2, sum)
 round(md1, 4)
+#>    M+0    M+1    M+2    M+3    M+4    M+5    M+6    M+7    M+8 
+#> 0.4791 0.2305 0.1321 0.0418 0.0130 0.0029 0.0607 0.0250 0.0148
 ```
 
 **md1** represents the measured isotopologue distribution which is equivalent to the vector of measured intensity values normalized to the vector sum. Please note that the measured MID contains additional peaks at M+7 and M+8, caused by the natural abundant isotopes of carbon atoms attached during derivatization. Now we may use function `CorMID` to disentangle this vector.
 
-```{r CorMID2}
+
+``` r
 CorMID::CorMID(int=md1, fml=fml, r=unlist(list("M+H"=1)))
+#> [class] 'CorMID'
+#> MID [%] (estimated)
+#>     M0    M1    M2    M3    M4    M5    M6
+#>  89.84 00.00 00.00 00.00 00.00 00.00 10.16
+#> [attr] 'r' (fixed)
+#>   M+H
+#>  1.00
+#> [attr] 'err'
+#> 0.002707
 ```
 
 Notice, that we allowed only [M+H] to be present in option *r*. The result is a labeled vector representing the corrected MID (or base MID) and attributes providing information on the fitting error *err* and the parameters *r*atio, *ratio_status* and *mid_status* as used in the function call. Please note that during the function call *mid* was estimated and *r*atio was fixed.
 
 We could achieve something similar testing for all currently defined fragments by omitting the *r* option:
 
-```{r CorMID3}
+
+``` r
 CorMID::CorMID(int=md1, fml=fml)
+#> [class] 'CorMID'
+#> MID [%] (estimated)
+#>     M0    M1    M2    M3    M4    M5    M6
+#>  89.84 00.00 00.00 00.00 00.00 00.00 10.16
+#> [attr] 'r' (estimated)
+#>   M+H   M+   M-H   M+H2O-CH4
+#>  1.00 0.00  0.00        0.00
+#> [attr] 'err'
+#> 0.002707
 ```
 
 Here, we essentially get the same result as before (except for *ratio* related attributes) because there is no superimposition in our test data. *ratio* was estimated and other possible adducts were tested but found to be of zero presence.  Now lets generate more difficult composite data **md2** to be fit by including a 20% proton loss (or "[M+]" or "M-1", respectively) on top of **md1**.
 
-```{r CorMID4}
+
+``` r
 md2 <- unlist(list("M-1" = 0, 0.8*md1)) + c(0.2*md1, 0)
 round(md2, 4)
+#>    M-1    M+0    M+1    M+2    M+3    M+4    M+5    M+6    M+7    M+8 
+#> 0.0958 0.4294 0.2108 0.1140 0.0360 0.0109 0.0145 0.0536 0.0230 0.0119
 ```
 
 We could have done the same with the convenience function *recMID*:
 
-```{r CorMID4altern}
+
+``` r
 fml <- "C21Si5"
 bMID <- c(0.9, rep(0, 5), 0.1)
 r <- list("M+H" = 0.8, "M+" = 0.2)
 rMID <- CorMID::recMID(mid = bMID, r = r, fml = fml)
 round(rMID, 4)
+#>    M-1    M+0    M+1    M+2    M+3    M+4    M+5    M+6    M+7    M+8    M+9 
+#> 0.0960 0.4300 0.2111 0.1142 0.0361 0.0110 0.0138 0.0507 0.0218 0.0120 0.0035 
+#> attr(,"class")
+#> [1] "recMID"
 plot(rMID, ylim=c(0,0.45))
 ```
 
+![plot of chunk CorMID4altern](figure/CorMID4altern-1.png)
+
 and let `CorMID` decompose this back...
 
-```{r CorMID5}
+
+``` r
 CorMID::CorMID(int=md2, fml=fml)
+#> [class] 'CorMID'
+#> MID [%] (estimated)
+#>     M0    M1    M2    M3    M4    M5    M6
+#>  89.84 00.00 00.00 00.00 00.00 00.00 10.16
+#> [attr] 'r' (estimated)
+#>   M+H   M+   M-H   M+H2O-CH4
+#>  0.80 0.20  0.00        0.00
+#> [attr] 'err'
+#> 0.003209
 ```
 
 which is pretty close to the truth. :)
@@ -164,14 +239,30 @@ Finally, let's look into the mathematical details of the function. Apart from so
 
 The grid is set by an internal function `poss_local`. Basically, if we have a two carbon molecule we expect a *corMID* of length=3 {M0, M1, M2}. Let's assume that *corMID* = {0.9, 0, 0.1}. Using a wide grid (step size d= 0.5) we would than test the following possibilities:
 
-```{r poss_local_demo1}
+
+``` r
 CorMID:::poss_local(vec=c(0.5,0.5,0.5), d=0.5, length.out=3)
+#>   Var1 Var2 Var3
+#> 1  1.0  0.0  0.0
+#> 2  0.5  0.5  0.0
+#> 3  0.0  1.0  0.0
+#> 4  0.5  0.0  0.5
+#> 5  0.0  0.5  0.5
+#> 6  0.0  0.0  1.0
 ```
 
 and identify {1, 0, 0} as best match after subjecting to a testing function. Taking the best match as our new starting point, we decrease the step size of the grid by 50% and test in the next iteration:
 
-```{r poss_local_demo2}
+
+``` r
 CorMID:::poss_local(vec=c(1,0,0), d=0.25, length.out=3)
+#>    Var1  Var2  Var3
+#> 1 1.000 0.000 0.000
+#> 2 0.875 0.125 0.000
+#> 3 0.750 0.250 0.000
+#> 4 0.875 0.000 0.125
+#> 5 0.750 0.125 0.125
+#> 6 0.750 0.000 0.250
 ```
 
 and will get closer to the truth and find {0.875, 0, 0.125} to give the lowest error.
