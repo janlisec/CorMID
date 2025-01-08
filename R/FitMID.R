@@ -113,6 +113,7 @@ FitMID <- function(md=NULL, td=NULL, r=NULL, mid_fix=NULL, prec=0.01, trace_step
     )
     # get new starting position of MID either through user input or as optimal solution of previous step via min of weighted errors
     if (trace_steps) {
+      #browser()
       new_mid_start <- select_mid_start_manual(test_mid, mid_local, w_m_errs)
       if (is.null(new_mid_start)) {
         trace_steps <- FALSE
