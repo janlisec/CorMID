@@ -27,7 +27,7 @@ Suggests:
     testthat,
     vdiffr
 VignetteBuilder: 
-    knitr, rmarkdown
+    knitr
 Encoding: UTF-8
 LinkingTo: Rcpp
 Language: en-US

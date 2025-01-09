@@ -64,7 +64,6 @@ FitMID <- function(md=NULL, td=NULL, r=NULL, mid_fix=NULL, prec=0.01, trace_step
       cat(paste("\nTesting", nrow(mid_local), "MID solutions."))
       cat(paste("\nUsing stepwidth [%] for MID:", round(100*dst,3)))
     }
-    #browser()
     test_mid <- apply(as.data.frame(mid_local), 1, function (x) {
       pre_mid <- colSums(td*unlist(x))
       if (r_fixed) {
@@ -113,7 +112,6 @@ FitMID <- function(md=NULL, td=NULL, r=NULL, mid_fix=NULL, prec=0.01, trace_step
     )
     # get new starting position of MID either through user input or as optimal solution of previous step via min of weighted errors
     if (trace_steps) {
-      #browser()
       new_mid_start <- select_mid_start_manual(test_mid, mid_local, w_m_errs)
       if (is.null(new_mid_start)) {
         trace_steps <- FALSE
@@ -128,7 +126,8 @@ FitMID <- function(md=NULL, td=NULL, r=NULL, mid_fix=NULL, prec=0.01, trace_step
 
   # ensure once more that sum=100 and result is given in %
   mid_fin <- 100*unlist(mid_start)/sum(mid_start)
-  attr(mid_fin, "err") <- min(sapply(test_mid,function(x){x$err}))
+  #attr(mid_fin, "err") <- min(sapply(test_mid, function(x){ x$err }))
+  attr(mid_fin, "err") <- min(w_m_errs)
   names(attr(mid_fin, "err")) <- "err"
   attr(mid_fin, "ratio") <- r_fin
   attr(mid_fin, "ratio_status") <- ifelse(r_fixed, "fixed", "estimated")

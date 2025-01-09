@@ -3,7 +3,7 @@ title: "CorMID"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{CorMID}
-  %\VignetteEngine{knitr::knitr}
+  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
@@ -121,7 +121,7 @@ round(md1, 4)
 **md1** represents the measured isotopologue distribution which is equivalent to the vector of measured intensity values normalized to the vector sum. Please note that the measured MID contains additional peaks at M+7 and M+8, caused by the natural abundant isotopes of carbon atoms attached during derivatization. Now we may use function `CorMID` to disentangle this vector.
 
 ```{r CorMID2}
-CorMID::CorMID(int=md1, fml=fml, r=unlist(list("M+H"=1)))
+CorMID::CorMID(int=md1, fml=fml, r="M+H")
 ```
 
 Notice, that we allowed only [M+H] to be present in option *r*. The result is a labeled vector representing the corrected MID (or base MID) and attributes providing information on the fitting error *err* and the parameters *r*atio, *ratio_status* and *mid_status* as used in the function call. Please note that during the function call *mid* was estimated and *r*atio was fixed.
@@ -147,7 +147,7 @@ bMID <- c(0.9, rep(0, 5), 0.1)
 r <- list("M+H" = 0.8, "M+" = 0.2)
 rMID <- CorMID::recMID(mid = bMID, r = r, fml = fml)
 round(rMID, 4)
-plot(rMID, ylim=c(0,0.45))
+plot(rMID, ylim=c(0, 0.45))
 ```
 
 and let `CorMID` decompose this back...

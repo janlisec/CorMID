@@ -41,9 +41,9 @@ NumericMatrix fnc_lim(NumericMatrix lp, NumericMatrix limits)
 
 NumericVector seqC(double from, double to, double by = 1.0, int length = 0, double min_val = 0, double max_val = 1.0) {
   if (length>0) {
-    by = abs(to - from)/(length-1);
+    by = std::abs(to - from)/(length-1);
   } else {
-    length = 1+round(abs(to - from)/by);
+    length = 1+round(std::abs(to - from)/by);
   }
   std::vector<double> out;
   out.reserve(length);
@@ -68,7 +68,7 @@ NumericMatrix rowSums_flt(NumericMatrix x, double prec = 0.001, double exp_sum =
     for (int j = 0; j < ncol; j++) {
       total += x(i, j);
     }
-    if (abs(total - exp_sum)<prec) {
+    if (std::abs(total - exp_sum)<prec) {
       for (int j = 0; j < ncol; j++) {
         out.push_back(x(i, j));
       }
