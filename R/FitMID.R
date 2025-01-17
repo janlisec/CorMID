@@ -15,7 +15,7 @@
 FitMID <- function(md=NULL, td=NULL, r=NULL, mid_fix=NULL, prec=0.01, trace_steps=FALSE, penalize=NA) {
 
   # potential parameters
-  step_increment = 0.5 # by how much is step reduced every time d2=d1*step_increment
+  step_increment = 0.5 # by how much is step reduced every time (d2=d1*step_increment)
   known_frags <- CorMID::known_frags
   if (prod(dim(r))>1 && all(r[1,]==0) & all(r[2,]==1)) limits <- NULL else limits <- r
 
@@ -48,55 +48,58 @@ FitMID <- function(md=NULL, td=NULL, r=NULL, mid_fix=NULL, prec=0.01, trace_step
     #mid_steps <- 0.5*step_increment^(0:10)
   }
   while (min(mid_steps)>prec) mid_steps <- c(mid_steps, mid_steps[length(mid_steps)]*step_increment)
+  # ...for r
+  if (r_fixed) {
+    r_start <- apply(r, 2, stats::median)
+    r_steps <- 0
+  } else {
+    # JL 20241120 r_steps has been replaced
+    #r_steps <- c(0.25,0.1,0.05,0.02,0.01)
+    r_start <- apply(r, 2, stats::median)
+    r_steps <- 0.25
+  }
+  while (min(r_steps)>prec) r_steps <- c(r_steps, r_steps[length(r_steps)]*step_increment)
 
   # optimize isotopologue distribution
   # JL$$ prepare as much data as possible for error calculation function
   frag <- as.numeric(substr(names(md),2,4))
   n_md <- length(md)
-  L0 <- sapply(colnames(r), function(x) { rep(0, abs(min(frag)-known_frags[x])) }, simplify = FALSE)
+  #L0 <- sapply(colnames(r), function(x) { rep(0, abs(min(frag)-known_frags[x])) }, simplify = FALSE)
   shift_r <- sapply(colnames(r), function(x) { abs(min(frag)-known_frags[x]) }, USE.NAMES = FALSE)
   # $$JL
 
   for (dst in mid_steps) {
     #mid_local <- poss_local(vec=mid_start, d=dst, prec = prec/10, limits=NULL, length.out=3)
-    mid_local <- poss_local_C(vec=mid_start, d=dst, prec = prec, length=3)
+    #browser()
+    mid_local <- poss_local_C(vec=mid_start, d=dst, prec = prec, length=ifelse(dst==0, 0, 3))
     if (trace_steps) {
       cat(paste("\nTesting", nrow(mid_local), "MID solutions."))
       cat(paste("\nUsing stepwidth [%] for MID:", round(100*dst,3)))
     }
     test_mid <- apply(as.data.frame(mid_local), 1, function (x) {
       pre_mid <- colSums(td*unlist(x))
-      if (r_fixed) {
-        r_steps <- 0.5
-      } else {
-        # JL 20241120 r_steps has been replaced
-        #r_steps <- c(0.25,0.1,0.05,0.02,0.01)
-        r_steps <- 0.25/2^(0:5)
-      }
-      r_start <- apply(r, 2, stats::median)
-      d <- 0.5
       # optimize fragment ratios
       for (rst in r_steps) {
-        #r_local <- poss_local(vec=r_start, d=d, prec = prec/10, limits = limits, by=rst)
-        #browser()
-        r_local <- poss_local_C(vec=r_start, d=d, prec = prec/10, limits = limits, by=rst)
-        if (FALSE) {
-          r_local_old <- poss_local(vec=r_start, d=d, prec = prec/10, limits = limits, by=rst)
-          if (!identical(r_local, r_local_old)) browser()
-        }
+        #r_local <- poss_local(vec=r_start, d=2*rst, prec = prec/10, limits = limits, by=rst)
+        r_local <- poss_local_C(vec=r_start, d=2*rst, prec = prec, limits = limits, by=ifelse(rst==0, 1, rst))
+        # if (FALSE) {
+        #   r_local_old <- poss_local(vec=r_start, d=2*rst, prec = prec/10, limits = limits, by=rst)
+        #   if (!identical(r_local, r_local_old)) browser()
+        # }
         if (nrow(r_local)>=1) {
-          # update d for next iteration
-          d <- rst
           # test fragment ratio distributions
           test_r <- apply(r_local, 1, function (y) {
             #calc_mid_error(md=md, reconstructed_mid=pre_mid, best_r=y, n_md=n_md, L0=L0)
             calc_mid_error_C(md, pre_mid, y, shift_r)
           })
           w_r_errs <- weight_errors(rMpH = r_local[,"M+H"], errs = test_r, penalize = penalize)
+          #if (any(min(w_r_errs)<0.004)) browser()
           r_start <- r_local[which.min(w_r_errs)[1],,drop=F]
           if (nrow(r_start)==0) { warning("nrow(r_start) was empty") }
           r_start <- r_start[1,]
           if (is.null(names(r_start))) names(r_start) <- colnames(r_local)
+        } else {
+          message("No valid r_local found")
         }
       }
       best_r <- r_start
@@ -106,12 +109,13 @@ FitMID <- function(md=NULL, td=NULL, r=NULL, mid_fix=NULL, prec=0.01, trace_step
     })
     # compute weighted errors (penalty for solutions with low M+H ion, which is unlikely)
     w_m_errs <- weight_errors(
-      rMpH = sapply(test_mid, function(x) { x$r["M+H"] }),
+      rMpH = sapply(test_mid, function(x) { x$r["M+H"] }, USE.NAMES = FALSE),
       errs = sapply(test_mid, function(x) { x$err }),
       penalize = penalize
     )
     # get new starting position of MID either through user input or as optimal solution of previous step via min of weighted errors
     if (trace_steps) {
+      #browser()
       new_mid_start <- select_mid_start_manual(test_mid, mid_local, w_m_errs)
       if (is.null(new_mid_start)) {
         trace_steps <- FALSE
@@ -123,10 +127,13 @@ FitMID <- function(md=NULL, td=NULL, r=NULL, mid_fix=NULL, prec=0.01, trace_step
     mid_start <- mid_local[new_mid_start,]
     r_fin <- test_mid[[new_mid_start]]$r
   }
-
   # ensure once more that sum=100 and result is given in %
   mid_fin <- 100*unlist(mid_start)/sum(mid_start)
   #attr(mid_fin, "err") <- min(sapply(test_mid, function(x){ x$err }))
+  # x <- mid_start
+  # pre_mid <- colSums(td*unlist(x))
+  # y <- r_fin
+  # weight_errors(rMpH = y["M+H"], errs = calc_mid_error_C(md, pre_mid, y, shift_r), penalize = penalize)
   attr(mid_fin, "err") <- min(w_m_errs)
   names(attr(mid_fin, "err")) <- "err"
   attr(mid_fin, "ratio") <- r_fin
